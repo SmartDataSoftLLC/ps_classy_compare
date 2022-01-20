@@ -512,22 +512,24 @@ compare list
 <div class="cd-products-wrapper">
 <ul class="cd-products-columns">
 
-  {if isset($compare_products)}
+  {if isset($products)}
  
 
-   {foreach from=$compare_products item=c_product}
+   {foreach from=$products item=product}
 <li class="product">
 
-<a href="#"  data-id-product="{$c_product->id}"  class="remove_compare_button"> <i class="material-icons ">delete</i></a>
+<a href="#"  data-id-product="{$product->id}"  class="remove_compare_button"> <i class="material-icons ">delete</i></a>
 <div class="top-info" style="">
 <div class="check"></div>
-<img src="http://localhost:8888/ps/1.7.8.2/5-home_default/today-is-a-good-day-framed-poster.jpg" alt="product image">
-<h3>{$c_product->name};</h3>
-  
+
+
+<h3>{$product->name};</h3>
+ 
         {* Get product description *}
         {*$c_product->description nofilter*};
 </div> 
 <ul class="cd-features-list">
+
 <li>$600</li>
 <li class="rate"><span>5/5</span></li>
 <li>1080p</li>

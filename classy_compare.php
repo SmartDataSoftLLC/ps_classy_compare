@@ -106,30 +106,39 @@ class Classy_Compare extends Module
        // print_r($id_product_json);
 
         $compare_products = array();
-        foreach ($id_product_json as $value) {
 
-        $id_product = $value[0];
-              // Language id
-        $lang_id = (int) Configuration::get('PS_LANG_DEFAULT');
-        
+        $listProducts = array();
+        $listFeatures = array();
+
+        foreach ( $id_product_json as $k => &$id) {
+           
+        //$id_product = $value[0];
+
+       
         // Load product object
-        $product = new Product($id_product, false, $lang_id);
+        $curProduct = new Product((int)$id, true, $this->context->language->id);
 
             // Validate product object
-            if (Validate::isLoadedObject($product)) {
-                $compare_products[] =$product;
+            if (!Validate::isLoadedObject($curProduct) || !$curProduct->active || !$curProduct->isAssociatedToShop()) {
 
+                unset($ids[$k]);
+                continue;
             }
          
+         foreach ($curProduct->getFrontFeatures($this->context->language->id) as $feature) {
+                        $listFeatures[$curProduct->id][$feature['id_feature']] = $feature['value'];
+            }
+
+            $cover = Product::getCover((int)$id);
+
+            $curProduct->id_image = Tools::htmlentitiesUTF8(Product::defineProductImage(array('id_image' => $cover['id_image'], 'id_product' => $id), $this->context->language->id));
+            $curProduct->allow_oosp = Product::isAvailableWhenOutOfStock($curProduct->out_of_stock);
+            $listProducts[] = $curProduct;
+
+            //echo $curProduct->id_image; die();
           }
 
-         // print_r( $compare_products);
-      // die();
 
- 
-    
-
-     
       //  $this->smarty->assign(array( 'compare_products' => $compare_products ));
 
       /*  return [
@@ -137,7 +146,12 @@ class Classy_Compare extends Module
         
         ];
         */
-        $this->context->smarty->assign(array( 'compare_products' => $compare_products ));
+        $this->context->smarty->assign(
+           
+            array( 
+                'product_features' => $listFeatures,
+                'products' => $listProducts,
+        ));
 
         $filePath = 'module:classy_compare/classy_compare.tpl';
         return $this->fetch( $filePath);
