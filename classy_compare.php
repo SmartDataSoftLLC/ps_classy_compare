@@ -30,10 +30,10 @@ if (!defined('_PS_VERSION_')) {
 
 use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
 
-class Classy_Compare extends Module 
+class Classy_Compare extends Module
 {
-    private $templates = array (
-       
+    private $templates = array(
+
         'default' => 'classy_compare.tpl',
     );
 
@@ -69,71 +69,50 @@ class Classy_Compare extends Module
         $this->context->controller->registerJavascript('modules-classycompare', 'modules/' . $this->name . '/views/js/js_classycompare.js');
     }
 
-    //displayNav2
     public function hookDisplayNav2($params)
     {
 
 
-       $compare_link = $this->context->link->getModuleLink('classy_compare', 'compare', [], true);
+        $compare_link = $this->context->link->getModuleLink('classy_compare', 'compare', [], true);
 
-      
+
         $compare_products_count = 0;
-        if($this->context->cookie->__isset('compare_product')){
-        
+        if ($this->context->cookie->__isset('compare_product')) {
+
             $id_product_json = $this->context->cookie->__get('compare_product');
-    
+
             $id_product_json = stripslashes($id_product_json);    // string is stored with escape double quotes 
             $id_product_json = json_decode($id_product_json, true);
-        
+
             $compare_products_count = count($id_product_json);
-            
         }
         $this->context->smarty->assign(
-          array(   
-            'compare_link' => $compare_link,
-            'compare_products_count' => $compare_products_count 
-        )
-    );
+            array(
+                'compare_link' => $compare_link,
+                'compare_products_count' => $compare_products_count
+            )
+        );
 
         $filePath = 'module:classy_compare/views/templates/hook/classy_compare_nav.tpl';
-        return $this->fetch( $filePath);
+        return $this->fetch($filePath);
     }
-  
-    public function hookDisplayProductPriceBlock($params){
 
-        if (  $params['type'] != 'before_price') {
+    public function hookDisplayProductPriceBlock($params)
+    {
+
+        if ($params['type'] != 'before_price') {
             return false;
-            }
+        }
 
-            $product = $params['product'];
-            $idProduct = $product['id_product'];
-           // echo $idProduct;
-/*
-       $product = $configuration['product'];
-        $idProduct = 1;//$product['id_product'];
-       // $variables = $this->getWidgetVariables($hookName, ['id_product' => $idProduct]);
+        $product = $params['product'];
+        $idProduct = $product['id_product'];
 
-        $variables = array_merge($variables, [
-            'product' => $product,
-            'product_comment_grade_url' => $this->context->link->getModuleLink('productcomments', 'CommentGrade'),
-        ]);
-
-       /* if ( $hookName == 'displayProductPriceBlock' && $params['type'] != 'after_price') {
-            return false;
-            }
-*/
         $filePath = 'module:classy_compare/views/templates/hook/classy-compare-button.tpl';
-        $this->smarty->assign( ['id_product' => $idProduct]);
+        $this->smarty->assign(['id_product' => $idProduct]);
 
         return $this->fetch($filePath);
     }
-  
 
- 
-
-  
-
-    
     public function getContent()
     {
         $output = [];
@@ -147,7 +126,7 @@ class Classy_Compare extends Module
 
             $output[] = $this->displayConfirmation($this->trans('Settings updated.', array(), 'Admin.Notifications.Success'));
 
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true).'&conf=6&configure='.$this->name.'&tab_module='.$this->tab.'&module_name='.$this->name);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true) . '&conf=6&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name);
         }
 
         $helper = new HelperForm();
