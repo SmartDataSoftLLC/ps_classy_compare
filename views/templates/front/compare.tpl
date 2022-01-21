@@ -1,3 +1,8 @@
+{extends file='page.tpl'}
+{block name='page_header_container'}
+{/block}
+
+{block name='page_content_container'}
 {*
 * 2007-2017 PrestaShop
 *
@@ -172,3 +177,5 @@ compare list
 </section>
 {/if}
 
+
+{/block}

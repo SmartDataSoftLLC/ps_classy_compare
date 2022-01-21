@@ -144,7 +144,7 @@ if (Tools::getValue('add_compare') && $this->ajax) {
     {
         parent::initContent();
 
-        $this->context->smarty->assign('variables', $this->variables);
-        $this->setTemplate('module:ps_emailsubscription/views/templates/front/subscription_execution.tpl');
+        //$this->context->smarty->assign('variables', $this->variables);
+       // $this->setTemplate('module:ps_emailsubscription/views/templates/front/subscription_execution.tpl');
     }
 }
