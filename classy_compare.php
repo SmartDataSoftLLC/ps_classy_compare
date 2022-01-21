@@ -110,6 +110,17 @@ class Classy_Compare extends Module
         $listProducts = array();
         $listFeatures = array();
 
+
+
+        $assembler = new ProductAssembler($this->context);
+
+        $presenterFactory = new ProductPresenterFactory($this->context);
+        $presentationSettings = $presenterFactory->getPresentationSettings();
+        $presenter = $presenterFactory->getPresenter();
+
+        $products_for_template = [];
+
+
         foreach ( $id_product_json as $k => &$id) {
            
         //$id_product = $value[0];
@@ -117,7 +128,8 @@ class Classy_Compare extends Module
        
         // Load product object
         $curProduct = new Product((int)$id, true, $this->context->language->id);
-
+        $curProduct->id_product = $id;
+ 
             // Validate product object
             if (!Validate::isLoadedObject($curProduct) || !$curProduct->active || !$curProduct->isAssociatedToShop()) {
 
@@ -135,10 +147,21 @@ class Classy_Compare extends Module
             $curProduct->allow_oosp = Product::isAvailableWhenOutOfStock($curProduct->out_of_stock);
             $listProducts[] = $curProduct;
 
+
+            $products_for_template[] = $presenter->present(
+                $presentationSettings,
+                $assembler->assembleProduct((array)$curProduct),
+                $this->context->language
+            );
+
             //echo $curProduct->id_image; die();
           }
 
 
+   
+         // print_r( $products_for_template);
+
+          
       //  $this->smarty->assign(array( 'compare_products' => $compare_products ));
 
       /*  return [
@@ -150,7 +173,7 @@ class Classy_Compare extends Module
            
             array( 
                 'product_features' => $listFeatures,
-                'products' => $listProducts,
+                'products' => $products_for_template,
         ));
 
         $filePath = 'module:classy_compare/classy_compare.tpl';
