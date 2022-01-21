@@ -70,15 +70,22 @@ if (Tools::getValue('add_compare') && $this->ajax) {
         $this->context->cookie->__set('compare_product',  $product_ids_json);
         $this->context->cookie->write();
 
+        $result = json_encode(array('success' => 1,'count'=>count(  $id_product_json)));
+        die( $result);
+
     }else{
         $product_ids[] =  $id_product;
         $product_ids_json = json_encode($product_ids, true ); 
         $this->context->cookie->__set('compare_product',  $product_ids_json);
         $this->context->cookie->write();
 
+       // echo json_encode(array('success' => 1));
+
+        $result = json_encode(array('success' => 1,'count'=>count(  $product_ids)));
+        die( $result);
     }
    
-  
+ 
 
 }else{
 
@@ -97,11 +104,13 @@ if (Tools::getValue('add_compare') && $this->ajax) {
         }
       //  $id_product_json[] = $id_product;
      
-      print_r($id_product_json);
+     // print_r($id_product_json);
       $product_ids_json = json_encode($id_product_json, true ); 
       $this->context->cookie->__set('compare_product',  $product_ids_json);
       $this->context->cookie->write();
 
+      $result = json_encode(array('success' => 1,'count'=>count(  $id_product_json)));
+      die( $result);
     //remove
   //  echo "remove compare";
 }

@@ -1,6 +1,7 @@
 $(document).ready(function () {
     $('.class_compare_button').on('click', function () {
       
+       
         var psemailsubscriptionForm = $(this);
         if (typeof classy_product_compare === 'undefined') {
             return true;
@@ -14,8 +15,9 @@ $(document).ready(function () {
             cache: false,
             data: { id_product: id_product , add_compare : 1},
             success: function (data) {
-                if (data.nw_error) {
-                    psemailsubscriptionForm.prepend('<p class="alert alert-danger block_newsletter_alert">' + data.msg + '</p>');
+                if (data.success) {
+                    $('.compare-products-count').html(data.count);
+           // psemailsubscriptionForm.prepend('<p class="alert alert-danger block_newsletter_alert">' + data.msg + '</p>');
                 } else {
                     psemailsubscriptionForm.prepend('<p class="alert alert-success block_newsletter_alert">' + data.msg + '</p>');
                 }
@@ -28,6 +30,9 @@ $(document).ready(function () {
     });
     $('.remove_compare_button').on('click', function () {
       
+        console.log( $(this).parent('.product'));
+       $(this).parent('.product').remove();
+       
         var psemailsubscriptionForm = $(this);
         if (typeof classy_product_compare === 'undefined') {
             return true;
@@ -41,8 +46,12 @@ $(document).ready(function () {
             cache: false,
             data: { id_product: id_product , remove_compare : 1},
             success: function (data) {
-                if (data.nw_error) {
-                    psemailsubscriptionForm.prepend('<p class="alert alert-danger block_newsletter_alert">' + data.msg + '</p>');
+                console.log(data);
+                if (data.success) {
+
+                    $('.compare-products-count').html(data.count);
+
+                  //  psemailsubscriptionForm.prepend('<p class="alert alert-danger block_newsletter_alert">' + data.msg + '</p>');
                 } else {
                     psemailsubscriptionForm.prepend('<p class="alert alert-success block_newsletter_alert">' + data.msg + '</p>');
                 }
