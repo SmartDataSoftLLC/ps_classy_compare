@@ -71,7 +71,6 @@ class Classy_Whitelist_MyIP extends Module
                 die();
             }
 
-
             $allowed_ips = array_map('trim', explode(',', Configuration::get('PS_MAINTENANCE_IP')));
 
             $new_ip = Tools::getRemoteAddr(); //'42.24.4.2';
