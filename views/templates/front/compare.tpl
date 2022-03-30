@@ -154,7 +154,7 @@ compare list
       <div class="highlighted-informations{if !$product.main_variants} no-variants{/if} hidden-sm-down">
         {block name='quick_view'}
           <a class="quick-view js-quick-view" href="#" data-link-action="quickview">
-            <i class="material-icons search">&#xE8B6;</i> {l s='Quick view' d='Shop.Theme.Actions'}
+            <i class="material-icons compare">&#xE8B6;</i> {l s='Quick view' d='Shop.Theme.Actions'}
           </a>
         {/block}
 

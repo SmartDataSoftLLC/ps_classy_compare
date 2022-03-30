@@ -50,7 +50,6 @@ class Classy_Compare extends Module
         $this->description = $this->getTranslator()->trans('Allows you to display compare.', array(), 'Modules.Contactinfo.Admin');
         $this->ps_versions_compliancy = array('min' => '1.7.0.0', 'max' => _PS_VERSION_);
     }
-
     public function install()
     {
         return parent::install()
@@ -67,26 +66,17 @@ class Classy_Compare extends Module
         ]);
 
         $this->context->controller->registerJavascript('modules-classycompare', 'modules/' . $this->name . '/views/js/js_classycompare.js');
+        $this->context->controller->registerStylesheet('classycompare-style', 'modules/' . $this->name . '/views/css/style.css', ['media' => 'all', 'priority' => 50]);
     }
-
-    //displayNav2
     public function hookDisplayNav2($params)
     {
-
-
-       $compare_link = $this->context->link->getModuleLink('classy_compare', 'compare', [], true);
-
-      
+        $compare_link = $this->context->link->getModuleLink('classy_compare', 'compare', [], true); 
         $compare_products_count = 0;
         if($this->context->cookie->__isset('compare_product')){
-        
             $id_product_json = $this->context->cookie->__get('compare_product');
-    
             $id_product_json = stripslashes($id_product_json);    // string is stored with escape double quotes 
             $id_product_json = json_decode($id_product_json, true);
-        
             $compare_products_count = count($id_product_json);
-            
         }
         $this->context->smarty->assign(
           array(   
@@ -94,65 +84,40 @@ class Classy_Compare extends Module
             'compare_products_count' => $compare_products_count 
         )
     );
-
         $filePath = 'module:classy_compare/views/templates/hook/classy_compare_nav.tpl';
         return $this->fetch( $filePath);
     }
-  
     public function hookDisplayProductPriceBlock($params){
-
-        if (  $params['type'] != 'before_price') {
-            return false;
+        $prd = $params['product'];
+        if($prd->has_discount){
+            if (  $params['type'] != 'old_price') {
+                return false;
             }
-
-            $product = $params['product'];
-            $idProduct = $product['id_product'];
-           // echo $idProduct;
-/*
-       $product = $configuration['product'];
-        $idProduct = 1;//$product['id_product'];
-       // $variables = $this->getWidgetVariables($hookName, ['id_product' => $idProduct]);
-
-        $variables = array_merge($variables, [
-            'product' => $product,
-            'product_comment_grade_url' => $this->context->link->getModuleLink('productcomments', 'CommentGrade'),
-        ]);
-
-       /* if ( $hookName == 'displayProductPriceBlock' && $params['type'] != 'after_price') {
-            return false;
+        }else{
+            if (  $params['type'] != 'before_price') {
+                return false;
             }
-*/
+        }
+        
+        $product = $params['product'];
+        $idProduct = $product['id_product'];
         $filePath = 'module:classy_compare/views/templates/hook/classy-compare-button.tpl';
         $this->smarty->assign( ['id_product' => $idProduct]);
-
         return $this->fetch($filePath);
     }
-  
-
- 
-
-  
-
-    
     public function getContent()
     {
         $output = [];
-
-        if (Tools::isSubmit('submitContactInfo')) {
+        if (Tools::isSubmit('submitCompareSettings')) {
             Configuration::updateValue('PS_CONTACT_INFO_DISPLAY_EMAIL', (int)Tools::getValue('PS_CONTACT_INFO_DISPLAY_EMAIL'));
-
             foreach ($this->templates as $template) {
                 $this->_clearCache($template);
             }
-
             $output[] = $this->displayConfirmation($this->trans('Settings updated.', array(), 'Admin.Notifications.Success'));
-
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true).'&conf=6&configure='.$this->name.'&tab_module='.$this->tab.'&module_name='.$this->name);
         }
-
         $helper = new HelperForm();
-        $helper->submit_action = 'submitContactInfo';
-
+        $helper->submit_action = 'submitCompareSettings';
         $field = array(
             'type' => 'switch',
             'label' => $this->trans('Display email address', array(), 'Admin.Actions'),
@@ -163,23 +128,15 @@ class Classy_Compare extends Module
                     'id' => 'active_on',
                     'value' => 1,
                     'label' => $this->trans('Yes', array(), 'Admin.Global')
-                ),
-                array(
-                    'id' => 'active_off',
-                    'value' => 0,
-                    'label' => $this->trans('No', array(), 'Admin.Global')
                 )
             )
         );
-
         $helper->fields_value['PS_CONTACT_INFO_DISPLAY_EMAIL'] = Configuration::get('PS_CONTACT_INFO_DISPLAY_EMAIL');
-
-        $output[] = $helper->generateForm(array(
+        $output = $helper->generateForm(array(
             array(
                 'form' => array(
                     'legend' => array(
-                        'title' => $this->displayName,
-                        'icon' => 'icon-share'
+                        'title' => $this->displayName . $this->trans(" Button Settings", array(), 'Admin.Actions')
                     ),
                     'input' => [$field],
                     'submit' => array(
@@ -189,6 +146,38 @@ class Classy_Compare extends Module
             )
         ));
 
-        return implode($output);
+        //Compare Details
+        $helper = new HelperForm();
+        $helper->submit_action = 'submitCompareDetailsSettings';
+        $field = array(
+            'type' => 'switch',
+            'label' => $this->trans('Display email address', array(), 'Admin.Actions'),
+            'name' => 'PS_CONTACT_INFO_DISPLAY_EMAIL',
+            'desc' => $this->trans('Your theme needs to be compatible with this feature', array(), 'Modules.Contactinfo.Admin'),
+            'values' => array(
+                array(
+					'type'     => 'text',
+					'label'    => $this->trans('Compare Button Text', [], 'Modules.Smartblog.Smartblog'),
+					'name'     => 'CLCOMPARE_TEXT',
+					'size'     => 70,
+					'required' => false
+				),
+            )
+        );
+        $helper->fields_value['PS_CONTACT_INFO_DISPLAY_EMAIL'] = Configuration::get('PS_CONTACT_INFO_DISPLAY_EMAIL');
+        $output .= $helper->generateForm(array(
+            array(
+                'form' => array(
+                    'legend' => array(
+                        'title' => $this->displayName . $this->trans(" Details Page", array(), 'Admin.Actions')
+                    ),
+                    'input' => [$field],
+                    'submit' => array(
+                        'title' => $this->trans('Save', array(), 'Admin.Actions')
+                    )
+                )
+            )
+        ));
+        return $output;
     }
 }
