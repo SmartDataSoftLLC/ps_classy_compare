@@ -52,6 +52,9 @@ class Classy_Compare extends Module
     }
     public function install()
     {
+        Configuration::updateValue('CLCOMPARE_TEXT', 'Add to Compare');
+        Configuration::updateValue('CLCOMPARE_POSITION', 'before_price');
+        Configuration::updateValue('CLCOMPARE_ADDED_TEXT', 'Added to Compare');
         return parent::install()
             && $this->registerHook([
                 'actionFrontControllerSetMedia',
@@ -61,8 +64,11 @@ class Classy_Compare extends Module
     }
     public function hookActionFrontControllerSetMedia()
     {
+        $added_text = Configuration::get('CLCOMPARE_ADDED_TEXT', 'Added to Compare');
         Media::addJsDef([
             'classy_product_compare' => $this->context->link->getModuleLink($this->name, 'addcompare', [], true),
+            'classy_product_compare' => $this->context->link->getModuleLink($this->name, 'addcompare', [], true),
+            'added_text' => $added_text
         ]);
 
         $this->context->controller->registerJavascript('modules-classycompare', 'modules/' . $this->name . '/views/js/js_classycompare.js');
@@ -79,105 +85,133 @@ class Classy_Compare extends Module
             $compare_products_count = count($id_product_json);
         }
         $this->context->smarty->assign(
-          array(   
-            'compare_link' => $compare_link,
-            'compare_products_count' => $compare_products_count 
-        )
-    );
+            array(   
+                'compare_link' => $compare_link,
+                'compare_products_count' => $compare_products_count 
+            )
+        );
         $filePath = 'module:classy_compare/views/templates/hook/classy_compare_nav.tpl';
         return $this->fetch( $filePath);
     }
     public function hookDisplayProductPriceBlock($params){
-        $prd = $params['product'];
-        if($prd->has_discount){
-            if (  $params['type'] != 'old_price') {
-                return false;
+        $position = Configuration::get('CLCOMPARE_POSITION','before_price');
+        if($position == 'before_price'){
+            $prd = $params['product'];
+            if($prd->has_discount){
+                if (  $params['type'] != 'old_price') {
+                    return false;
+                }
+            }else{
+                if (  $params['type'] != 'before_price') {
+                    return false;
+                }
             }
         }else{
-            if (  $params['type'] != 'before_price') {
+            if (  $params['type'] != 'weight') {
                 return false;
             }
         }
-        
         $product = $params['product'];
         $idProduct = $product['id_product'];
         $filePath = 'module:classy_compare/views/templates/hook/classy-compare-button.tpl';
-        $this->smarty->assign( ['id_product' => $idProduct]);
+        $id_product_added = $this->context->cookie->__get('compare_product');
+        $id_product_added = stripslashes($id_product_added);    // string is stored with escape double quotes 
+        $id_product_added = json_decode($id_product_added, true);
+        if(in_array($idProduct,$id_product_added )){
+            $added_already = 1;
+        }else{
+            $added_already = 0;
+        }
+        $this->smarty->assign( [
+            'id_product' => $idProduct,
+            'added_already' => $added_already,
+            'compare_text' => Configuration::get('CLCOMPARE_TEXT',''),
+            'addes_compare_text' => Configuration::get('CLCOMPARE_ADDED_TEXT','')
+        ]);
         return $this->fetch($filePath);
     }
     public function getContent()
     {
-        $output = [];
         if (Tools::isSubmit('submitCompareSettings')) {
-            Configuration::updateValue('PS_CONTACT_INFO_DISPLAY_EMAIL', (int)Tools::getValue('PS_CONTACT_INFO_DISPLAY_EMAIL'));
+            Configuration::updateValue('CLCOMPARE_TEXT', Tools::getValue('CLCOMPARE_TEXT'));
+            Configuration::updateValue('CLCOMPARE_POSITION', Tools::getValue('CLCOMPARE_POSITION'));
+            Configuration::updateValue('CLCOMPARE_ADDED_TEXT', Tools::getValue('CLCOMPARE_ADDED_TEXT'));
             foreach ($this->templates as $template) {
                 $this->_clearCache($template);
             }
-            $output[] = $this->displayConfirmation($this->trans('Settings updated.', array(), 'Admin.Notifications.Success'));
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true).'&conf=6&configure='.$this->name.'&tab_module='.$this->tab.'&module_name='.$this->name);
+            $output = $this->displayConfirmation($this->trans('Settings updated.', array(), 'Admin.Notifications.Success'));
         }
-        $helper = new HelperForm();
-        $helper->submit_action = 'submitCompareSettings';
-        $field = array(
-            'type' => 'switch',
-            'label' => $this->trans('Display email address', array(), 'Admin.Actions'),
-            'name' => 'PS_CONTACT_INFO_DISPLAY_EMAIL',
-            'desc' => $this->trans('Your theme needs to be compatible with this feature', array(), 'Modules.Contactinfo.Admin'),
-            'values' => array(
-                array(
-                    'id' => 'active_on',
-                    'value' => 1,
-                    'label' => $this->trans('Yes', array(), 'Admin.Global')
-                )
-            )
-        );
-        $helper->fields_value['PS_CONTACT_INFO_DISPLAY_EMAIL'] = Configuration::get('PS_CONTACT_INFO_DISPLAY_EMAIL');
-        $output = $helper->generateForm(array(
-            array(
-                'form' => array(
-                    'legend' => array(
-                        'title' => $this->displayName . $this->trans(" Button Settings", array(), 'Admin.Actions')
-                    ),
-                    'input' => [$field],
-                    'submit' => array(
-                        'title' => $this->trans('Save', array(), 'Admin.Actions')
-                    )
-                )
-            )
-        ));
-
-        //Compare Details
-        $helper = new HelperForm();
-        $helper->submit_action = 'submitCompareDetailsSettings';
-        $field = array(
-            'type' => 'switch',
-            'label' => $this->trans('Display email address', array(), 'Admin.Actions'),
-            'name' => 'PS_CONTACT_INFO_DISPLAY_EMAIL',
-            'desc' => $this->trans('Your theme needs to be compatible with this feature', array(), 'Modules.Contactinfo.Admin'),
-            'values' => array(
-                array(
-					'type'     => 'text',
-					'label'    => $this->trans('Compare Button Text', [], 'Modules.Smartblog.Smartblog'),
-					'name'     => 'CLCOMPARE_TEXT',
-					'size'     => 70,
-					'required' => false
-				),
-            )
-        );
-        $helper->fields_value['PS_CONTACT_INFO_DISPLAY_EMAIL'] = Configuration::get('PS_CONTACT_INFO_DISPLAY_EMAIL');
-        $output .= $helper->generateForm(array(
-            array(
-                'form' => array(
-                    'legend' => array(
-                        'title' => $this->displayName . $this->trans(" Details Page", array(), 'Admin.Actions')
-                    ),
-                    'input' => [$field],
-                    'submit' => array(
-                        'title' => $this->trans('Save', array(), 'Admin.Actions')
-                    )
-                )
-            )
-        ));
+        $output = $this->compare_setting_form();
         return $output;
+    }
+    public function compare_setting_form(){
+        $args['title'] = $this->trans(" Button Settings", array(), 'Admin.Actions');
+        $field = array(
+            array(
+                'type'     => 'text',
+                'label'    => $this->trans('Compare Text', [], 'Modules.Smartblog.Smartblog'),
+                'name'     => 'CLCOMPARE_TEXT',
+                'size'     => 70,
+                'required' => false
+            ),
+            array(
+                'type'     => 'text',
+                'label'    => $this->trans('Added to Compare Text', [], 'Modules.Smartblog.Smartblog'),
+                'name'     => 'CLCOMPARE_ADDED_TEXT',
+                'size'     => 70,
+                'required' => false
+            ),
+            array(
+                'type' => 'select',
+                'label' => $this->trans('Button Position', [], 'Modules.Smartblog.Smartblog'),
+                'name' => 'CLCOMPARE_POSITION',
+                'required' => false,
+                'options' => array(
+                    'query' => array(
+                        array(
+                            'id_pos' => 'before_price',
+                            'name' => 'Before Price'
+                        ),
+                        array(
+                            'id_pos' => 'after_price',
+                            'name' => 'After Price'
+                        )
+                    ),
+                    'id' => 'id_pos',
+                    'name' => 'name'
+                )
+            )
+        );
+        $args['field'] = $field;
+        $args['submit_action'] = 'submitCompareSettings';
+        return $this->generate_form($args);
+    }
+
+    public function generate_form($args){
+        extract($args);
+        $helper = new HelperForm();
+        $helper->submit_action = $submit_action;
+        $helper->fields_value = $this->setConfigFildsValues($field);
+        return $helper->generateForm(array(
+            array(
+                'form' => array(
+                    'legend' => array(
+                        'title' => $this->displayName . $title
+                    ),
+                    'input' => $field,
+                    'submit' => array(
+                        'title' => $this->trans('Save', array(), 'Admin.Actions')
+                    )
+                )
+            )
+        ));
+    }
+
+    public function setConfigFildsValues($fields){
+        $returnarr = array();
+        foreach ($fields as $field) {
+            $returnarr[$field['name']] = Configuration::get($field['name']);
+        }
+        return $returnarr;
     }
 }
