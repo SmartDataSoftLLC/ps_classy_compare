@@ -27,155 +27,91 @@
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
-<style type="text/css"> 
-@media only screen and (min-width: 1170px)
-.cd-products-columns .product {
-    width: 310px;
-}
-.cd-products-columns .product {
-    position: relative;
-    float: left;
-    width: 250px;
-    text-align: center;
-	margin-right:20px;
-    -webkit-transition: opacity .3s, visibility .3s, -webkit-transform .3s;
-    -moz-transition: opacity .3s, visibility .3s, -moz-transform .3s;
-    transition: opacity .3s, visibility .3s, transform .3s;
-	
-}
-.cd-products-columns .product {
-    position: relative;
-    float: left;
-    width: 250px;
-    text-align: center;
-    -webkit-transition: opacity .3s, visibility .3s, -webkit-transform .3s;
-    -moz-transition: opacity .3s, visibility .3s, -moz-transform .3s;
-    transition: opacity .3s, visibility .3s, transform .3s;
-}
-@media only screen and (min-width: 1170px)
-.cd-products-columns .product {
-    width: 310px;
-}
-</style>
+{extends file='page.tpl'}
+{block name='page_title'}
+  {l s='Compare Details' d='Modules.Classycompare.Shop'}
+{/block}
 
-https://github.com/PrestaShop/PrestaShop-1.6/blob/1.6.1.24/themes/default-bootstrap/products-comparison.tpl
-
-https://codyhouse.co/demo/products-comparison-table/index.html
-compare list
-
-    
-<section class="cd-products-comparison-table">
-<div class="cd-products-wrapper">
-<ul class="cd-products-columns">
-
-  {if isset($products)}
- 
-
-   {foreach from=$products item=product}
-<li class="product">
-
-<a href="#"  data-id-product="{$product.id}"  class="remove_compare_button"> <i class="material-icons ">delete</i></a>
-<div class="product{if !empty($productClasses)} {$productClasses}{/if}">
-  <article class="product-miniature js-product-miniature" data-id-product="{$product.id_product}" data-id-product-attribute="{$product.id_product_attribute}">
-    <div class="thumbnail-container">
-      {block name='product_thumbnail'}
-        {if $product.cover}
-          <a href="{$product.url}" class="thumbnail product-thumbnail">
-            <img
-              class="img-fluid"
-              src="{$product.cover.bySize.home_default.url}"
-              alt="{if !empty($product.cover.legend)}{$product.cover.legend}{else}{$product.name|truncate:30:'...'}{/if}"
-              loading="lazy"
-              data-full-size-image-url="{$product.cover.large.url}"
-              width="250"
-              height="250"
-            />
-          </a>
-        {else}
-          <a href="{$product.url}" class="thumbnail product-thumbnail">
-            <img
-              src="{$urls.no_picture_image.bySize.home_default.url}"
-              loading="lazy"
-              width="250"
-              height="250"
-            />
-          </a>
-        {/if}
-      {/block}
-
-      <div class="product-description">
-        {block name='product_name'}
-          {if $page.page_name == 'index'}
-            <h3 class="h3 product-title"><a href="{$product.url}" content="{$product.url}">{$product.name|truncate:30:'...'}</a></h3>
-          {else}
-            <h2 class="h3 product-title"><a href="{$product.url}" content="{$product.url}">{$product.name|truncate:30:'...'}</a></h2>
-          {/if}
-        {/block}
-
-        {block name='product_price_and_shipping'}
-          {if $product.show_price}
-            <div class="product-price-and-shipping">
-              {if $product.has_discount}
-                {hook h='displayProductPriceBlock' product=$product type="old_price"}
-
-                <span class="regular-price" aria-label="{l s='Regular price' d='Shop.Theme.Catalog'}">{$product.regular_price}</span>
-                {if $product.discount_type === 'percentage'}
-                  <span class="discount-percentage discount-product">{$product.discount_percentage}</span>
-                {elseif $product.discount_type === 'amount'}
-                  <span class="discount-amount discount-product">{$product.discount_amount_to_display}</span>
-                {/if}
-              {/if}
-
-              {hook h='displayProductPriceBlock' product=$product type="before_price"}
-
-              <span class="price" aria-label="{l s='Price' d='Shop.Theme.Catalog'}">
-                {capture name='custom_price'}{hook h='displayProductPriceBlock' product=$product type='custom_price' hook_origin='products_list'}{/capture}
-                {if '' !== $smarty.capture.custom_price}
-                  {$smarty.capture.custom_price nofilter}
-                {else}
-                  {$product.price}
-                {/if}
-              </span>
-
-              {hook h='displayProductPriceBlock' product=$product type='unit_price'}
-
-              {hook h='displayProductPriceBlock' product=$product type='weight'}
-            </div>
-          {/if}
-        {/block}
-
-        {block name='product_reviews'}
-          {hook h='displayProductListReviews' product=$product}
-        {/block}
-      </div>
-
-      {include file='catalog/_partials/product-flags.tpl'}
-
-      <div class="highlighted-informations{if !$product.main_variants} no-variants{/if} hidden-sm-down">
-        {block name='quick_view'}
-          <a class="quick-view js-quick-view" href="#" data-link-action="quickview">
-            <i class="material-icons compare">&#xE8B6;</i> {l s='Quick view' d='Shop.Theme.Actions'}
-          </a>
-        {/block}
-
-        {block name='product_variants'}
-          {if $product.main_variants}
-            {include file='catalog/_partials/variant-links.tpl' variants=$product.main_variants}
-          {/if}
-        {/block}
-      </div>
-    </div>
-  </article>
-</div>
-    
-
-  {/foreach}
-</ul> 
-</div> 
-
-</div> 
-</section>
-{/if}
-
-
+{block name='page_content'}
+    <table class="table table-labeled hidden-sm-down">
+        <tbody>
+          {assign var="class" value="no"}
+          {foreach from=$compare_data key=k item=data}
+            {if $k == "id"}
+              <tr>
+                <th></th>
+                {foreach from=$list_ids key=id item=value}
+                    <td class="compare-item-{$value}">
+                      <a href="#"  data-id-product="{$value}"  class="btn btn-danger remove_compare_button"> <i class="material-icons ">delete</i>{l s='Remove' d='Modules.Classycompare.Shop'}</a>
+                    </td>
+                {/foreach}
+              </tr>
+            {elseif $k == "thumbnail"}
+              <tr>
+                <th></th>
+                {foreach from=$list_ids item=value}
+                    <td class="compare-item-{$value}">
+                      <a href="{$product_links.$value}" target="_blank">
+                        <img
+                          class="img-fluid"
+                          src="{$data.$value}"
+                          loading="lazy"
+                          data-full-size-image-url="{$value}"
+                        />
+                      </a>
+                    </td>
+                {/foreach}
+              </tr>
+            {elseif $k == "discounted"}
+              <tr class="{$class}-background">
+                <th>{$k|ucfirst}</th>
+                {foreach from=$list_ids key=id item=value}
+                  {if $data.$value == true}
+                    <td class="compare-item-{$value}">{l s='Yes' d='Modules.Classycompare.Shop'}</td>
+                  {else} 
+                    <td class="compare-item-no-value">{l s='No' d='Modules.Classycompare.Shop'}</td>
+                  {/if}
+                {/foreach}
+              </tr>
+            {elseif $k == "add_cart"}
+              <tr>
+                <th></th>
+                {foreach from=$list_ids key=id item=value}
+                  <td class="compare-item-no-value">
+                    <a href="{$data.$value}" class="btn btn-primary add-to-cart">
+                      <i class="material-icons shopping-cart"></i>
+                      {l s='Add to Cart' d='Modules.Classycompare.Shop'}
+                    </a>
+                  </td>
+                {/foreach}
+              </tr>
+            {else}
+              <tr class="{$class}-background">
+                <th>{$k|ucfirst}</th>
+                {foreach from=$list_ids key=id item=value}
+                  {if isset($data.$value)}
+                    <td class="compare-item-{$value}">
+                      {if $k == "name"}
+                        <a href="{$product_links.$value}" target="_blank">
+                      {/if}
+                      {$data.$value}
+                      {if $k == "name"}
+                        </a>
+                      {/if}
+                    </td>
+                  {else} 
+                    <td class="compare-item-no-value">{l s='--' d='Modules.Classycompare.Shop'}</td>
+                  {/if}
+                {/foreach}
+              </tr>
+            {/if}
+            {if $class == "no"}
+              {assign "class" "with"}
+            {else}
+              {assign "class" "no"}
+            {/if}
+          {/foreach}
+      </tbody>
+    </table>
+{/block}
 {/block}

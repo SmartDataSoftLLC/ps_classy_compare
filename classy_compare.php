@@ -114,13 +114,14 @@ class Classy_Compare extends Module
         $product = $params['product'];
         $idProduct = $product['id_product'];
         $filePath = 'module:classy_compare/views/templates/hook/classy-compare-button.tpl';
-        $id_product_added = $this->context->cookie->__get('compare_product');
-        $id_product_added = stripslashes($id_product_added);    // string is stored with escape double quotes 
-        $id_product_added = json_decode($id_product_added, true);
-        if(in_array($idProduct,$id_product_added )){
-            $added_already = 1;
-        }else{
-            $added_already = 0;
+        $added_already = 0;
+        if($this->context->cookie->__isset('compare_product')){
+            $id_product_added = $this->context->cookie->__get('compare_product');
+            $id_product_added = stripslashes($id_product_added);    // string is stored with escape double quotes 
+            $id_product_added = json_decode($id_product_added, true);
+            if(in_array($idProduct,$id_product_added )){
+                $added_already = 1;
+            }
         }
         $this->smarty->assign( [
             'id_product' => $idProduct,

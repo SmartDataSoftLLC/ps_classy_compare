@@ -28,16 +28,11 @@ $(document).ready(function () {
         }
     });
     $('.remove_compare_button').on('click', function () {
-      
-        console.log( $(this).parent('.product'));
-       $(this).parent('.product').remove();
-       
-        var psemailsubscriptionForm = $(this);
         if (typeof classy_product_compare === 'undefined') {
             return true;
         }
         var id_product = $(this).attr("data-id-product");
-       // $('.block_newsletter_alert').remove();
+        $(".compare-item-"+id_product).remove();
         $.ajax({
             type: 'POST',
             dataType: 'JSON',
