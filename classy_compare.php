@@ -46,20 +46,24 @@ class Classy_Compare extends Module
         $this->bootstrap = true;
         parent::__construct();
 
-        $this->displayName = $this->getTranslator()->trans('Classy Compare', array(), 'Modules.Contactinfo.Admin');
-        $this->description = $this->getTranslator()->trans('Allows you to display compare.', array(), 'Modules.Contactinfo.Admin');
+        $this->displayName = $this->getTranslator()->trans('Classy Product Comparison PrestaShop', array(), 'Modules.Classycompare.Admin');
+        $this->description = $this->getTranslator()->trans('Allows your customers to compare between products before buying it. Increases sale.', array(), 'Modules.Classycompare.Admin');
         $this->ps_versions_compliancy = array('min' => '1.7.0.0', 'max' => _PS_VERSION_);
     }
     public function install()
     {
         Configuration::updateValue('CLCOMPARE_TEXT', 'Add to Compare');
         Configuration::updateValue('CLCOMPARE_POSITION', 'before_price');
+        Configuration::updateValue('CLCOMPARE_SINGLE_POSITION', 'product_actions');
         Configuration::updateValue('CLCOMPARE_ADDED_TEXT', 'Added to Compare');
+
+        Configuration::updateValue('CLCOMPARE_MAX', '6');
         return parent::install()
             && $this->registerHook([
                 'actionFrontControllerSetMedia',
                 'displayNav2',
                 'displayProductPriceBlock',
+                'displayProductActions'
             ]);
     }
     public function hookActionFrontControllerSetMedia()
@@ -93,8 +97,30 @@ class Classy_Compare extends Module
         $filePath = 'module:classy_compare/views/templates/hook/classy_compare_nav.tpl';
         return $this->fetch( $filePath);
     }
+
+    public function  hookDisplayProductActions($params){
+        $product = $params['product'];
+        $position = Configuration::get('CLCOMPARE_SINGLE_POSITION','product_actions');
+        if($position != 'product_actions'){
+            return;
+        }
+        return $this->fetch_template($product);
+    }
+
     public function hookDisplayProductPriceBlock($params){
-        $position = Configuration::get('CLCOMPARE_POSITION','before_price');
+
+        $controller = Tools::getValue('controller');
+        $position_string = '';
+        if($controller == 'product'){
+            $position_string = 'single';
+            $position = Configuration::get('CLCOMPARE_SINGLE_POSITION','product_actions');
+            if($position == 'product_actions'){
+                return;
+            }
+        }
+        $position_string = 'CLCOMPARE_' . strtoupper($position_string) . '_POSITION';
+
+        $position = Configuration::get($position_string,'before_price');
         if($position == 'before_price'){
             $prd = $params['product'];
             if($prd->has_discount){
@@ -112,6 +138,10 @@ class Classy_Compare extends Module
             }
         }
         $product = $params['product'];
+        return $this->fetch_template($product);
+    }
+
+    public function fetch_template($product){
         $idProduct = $product['id_product'];
         $filePath = 'module:classy_compare/views/templates/hook/classy-compare-button.tpl';
         $added_already = 0;
@@ -131,40 +161,72 @@ class Classy_Compare extends Module
         ]);
         return $this->fetch($filePath);
     }
+
     public function getContent()
     {
         if (Tools::isSubmit('submitCompareSettings')) {
             Configuration::updateValue('CLCOMPARE_TEXT', Tools::getValue('CLCOMPARE_TEXT'));
             Configuration::updateValue('CLCOMPARE_POSITION', Tools::getValue('CLCOMPARE_POSITION'));
+            Configuration::updateValue('CLCOMPARE_SINGLE_POSITION', Tools::getValue('CLCOMPARE_SINGLE_POSITION'));
             Configuration::updateValue('CLCOMPARE_ADDED_TEXT', Tools::getValue('CLCOMPARE_ADDED_TEXT'));
+
+            if(Tools::getValue('CLCOMPARE_SINGLE_POSITION') == 'product_actions'){
+                $this->registerHook('displayProductActions');
+            }else{
+                $this->unregisterHook('displayProductActions');
+            }
+
             foreach ($this->templates as $template) {
                 $this->_clearCache($template);
             }
-            $output = $this->displayConfirmation($this->trans('Settings updated.', array(), 'Admin.Notifications.Success'));
+            $output = $this->displayConfirmation($this->trans('Settings updated.', array(), 'Modules.Classycompare.Admin'));
         }
-        $output = $this->compare_setting_form();
+        if (Tools::isSubmit('submitCompareDetailsSettings')) {
+            Configuration::updateValue('CLCOMPARE_MAX', Tools::getValue('CLCOMPARE_MAX'));
+            $output = $this->displayConfirmation($this->trans('Settings updated.', array(), 'Modules.Classycompare.Admin'));
+        }
+        $output = $this->license_form();
+        $output .= $this->compare_setting_form();
+        $output .= $this->compare_details_setting_form();
         return $output;
     }
-    public function compare_setting_form(){
-        $args['title'] = $this->trans(" Button Settings", array(), 'Admin.Actions');
+
+    public function license_form(){
+        $args['title'] = $this->trans("License Settings", array(), 'Modules.Classycompare.Admin');
         $field = array(
             array(
                 'type'     => 'text',
-                'label'    => $this->trans('Compare Text', [], 'Modules.Smartblog.Smartblog'),
+                'label'    => $this->trans('Purchase Code', [], 'Modules.Classycompare.Admin'),
+                'name'     => 'CLCOMPARE_PURCHASE_CODE',
+                'size'     => 70,
+                'required' => false
+            )
+        );
+        $args['field'] = $field;
+        $args['submit_action'] = 'submitCompareLicense';
+        return $this->generate_form($args);
+    }
+
+    public function compare_setting_form(){
+        $args['title'] = $this->trans("Compare Button Settings", array(), 'Modules.Classycompare.Admin');
+        $field = array(
+            array(
+                'type'     => 'text',
+                'label'    => $this->trans('Compare Text', [], 'Modules.Classycompare.Admin'),
                 'name'     => 'CLCOMPARE_TEXT',
                 'size'     => 70,
                 'required' => false
             ),
             array(
                 'type'     => 'text',
-                'label'    => $this->trans('Added to Compare Text', [], 'Modules.Smartblog.Smartblog'),
+                'label'    => $this->trans('Added to Compare Text', [], 'Modules.Classycompare.Admin'),
                 'name'     => 'CLCOMPARE_ADDED_TEXT',
                 'size'     => 70,
                 'required' => false
             ),
             array(
                 'type' => 'select',
-                'label' => $this->trans('Button Position', [], 'Modules.Smartblog.Smartblog'),
+                'label' => $this->trans('Button Position', [], 'Modules.Classycompare.Admin'),
                 'name' => 'CLCOMPARE_POSITION',
                 'required' => false,
                 'options' => array(
@@ -181,10 +243,50 @@ class Classy_Compare extends Module
                     'id' => 'id_pos',
                     'name' => 'name'
                 )
+            ),
+            array(
+                'type' => 'select',
+                'label' => $this->trans('Single Page Button Position', [], 'Modules.Classycompare.Admin'),
+                'name' => 'CLCOMPARE_SINGLE_POSITION',
+                'required' => false,
+                'options' => array(
+                    'query' => array(
+                        array(
+                            'id_pos' => 'before_price',
+                            'name' => 'Before Price'
+                        ),
+                        array(
+                            'id_pos' => 'after_price',
+                            'name' => 'After Price'
+                        ),
+                        array(
+                            'id_pos' => 'product_actions',
+                            'name' => 'In Actions Block'
+                        )
+                    ),
+                    'id' => 'id_pos',
+                    'name' => 'name'
+                )
             )
         );
         $args['field'] = $field;
         $args['submit_action'] = 'submitCompareSettings';
+        return $this->generate_form($args);
+    }
+
+    public function compare_details_setting_form(){
+        $args['title'] = $this->trans("Compare Details Settings", array(), 'Modules.Classycompare.Admin');
+        $field = array(
+            array(
+                'type'     => 'text',
+                'label'    => $this->trans('Max Number of Products in Compare', [], 'Modules.Classycompare.Admin'),
+                'name'     => 'CLCOMPARE_MAX',
+                'size'     => 70,
+                'required' => false
+            )
+        );
+        $args['field'] = $field;
+        $args['submit_action'] = 'submitCompareDetailsSettings';
         return $this->generate_form($args);
     }
 
@@ -197,17 +299,16 @@ class Classy_Compare extends Module
             array(
                 'form' => array(
                     'legend' => array(
-                        'title' => $this->displayName . $title
+                        'title' => $title
                     ),
                     'input' => $field,
                     'submit' => array(
-                        'title' => $this->trans('Save', array(), 'Admin.Actions')
+                        'title' => $this->trans('Save', array(), 'Modules.Classycompare.Admin')
                     )
                 )
             )
         ));
     }
-
     public function setConfigFildsValues($fields){
         $returnarr = array();
         foreach ($fields as $field) {

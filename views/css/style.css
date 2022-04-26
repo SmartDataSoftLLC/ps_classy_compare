@@ -7,7 +7,19 @@
     text-align: center;
     padding: 10px;
 }
-
+#header .classy-compare-error-msg{
+    position: fixed;
+    bottom: 1000;
+    right: 10px;
+    width: 300px;
+    color: #fff;
+    background: #c0392b;
+    padding: 16px;
+    border-radius: 4px;
+}
+table, table tr td, table tr th{
+    border: 1px solid #f6f6f6;
+}
 table tr th {
     position: sticky;
     left: 0;
@@ -28,6 +40,9 @@ table tr th {
     text-decoration: line-through;
     font-size: 13px;
     color: #7a7a7a;
+}
+.compare-item-description{
+    width: min-content;
 }
 .discount_amount{
     padding: 4px;

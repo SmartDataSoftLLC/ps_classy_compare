@@ -18,6 +18,11 @@ $(document).ready(function () {
                         $('.compare-products-count').html(data.count);
                         $this.html('<i class="material-icons compare">compare</i>'+added_text);
                         $this.attr("data-added",1);
+                    }else{
+                        $('#header').append('<div class="classy-compare-error-msg">'+data.msg+'</div>')
+                        setTimeout(function(){
+                            $('.classy-compare-error-msg').remove();
+                        }, 3000);
                     }
                 },
                 error: function (err) {
@@ -43,8 +48,6 @@ $(document).ready(function () {
                 console.log(data);
                 if (data.success) {
                     $('.compare-products-count').html(data.count);
-                } else {
-                    psemailsubscriptionForm.prepend('<p class="alert alert-success block_newsletter_alert">' + data.msg + '</p>');
                 }
             },
             error: function (err) {

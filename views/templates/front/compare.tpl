@@ -35,7 +35,7 @@
 {/block}
 <div class="compare-details-section">
   {block name='page_content'}
-    {if }
+    {if isset($compare_data) && !empty($compare_data)}
       <table class="table table-labeled hidden-sm-down">
         <tbody>
           {assign var="class" value="no"}
@@ -111,6 +111,11 @@
             {/foreach}
           </tbody>
         </table>
+      {else}
+        <div class="page-title">
+          <h2>{l s='No Products Added to Compare' d='Modules.Classycompare.Shop'}</h3>
+        </div>
+      {/if}
     {/block}
   {/block}
 </div>

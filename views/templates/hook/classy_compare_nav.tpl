@@ -1,5 +1,5 @@
 <div id="_desktop_cart">
-    <div class="blockcart cart-preview inactive" data-refresh-url="//localhost/prestashop/presta-7.8.3/module/ps_shoppingcart/ajax">
+    <div class="blockcart cart-preview inactive">
       <div class="header">
             <a href="{$compare_link}">
                 <i class="material-icons compare">compare</i>

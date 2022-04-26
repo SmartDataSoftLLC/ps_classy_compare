@@ -44,11 +44,19 @@ class Classy_CompareAddCompareModuleFrontController extends ModuleFrontControlle
                 $id_product_json = $this->context->cookie->__get('compare_product');
                 $id_product_json = stripslashes($id_product_json);    // string is stored with escape double quotes 
                 $id_product_json = json_decode($id_product_json, true);
-
+                $limit = Configuration::get('CLCOMPARE_MAX', '6');
+                if(count($id_product_json) >= $limit){
+                    $msg = $this->trans('You can not add more than '.$limit.' products to comparison', [], 'Modules.Classycompare.Shop');
+                    $result = json_encode(array('success' => 0,'count'=>count(  $id_product_json), 'msg' =>$msg ));
+                    die( $result);
+                }
                 if (!in_array($id_product, $id_product_json)){
                     $id_product_json[] = $id_product;
                 }
+
+                
                 $product_ids_json = json_encode($id_product_json, true ); 
+
                 $this->context->cookie->__set('compare_product',  $product_ids_json);
                 $this->context->cookie->write();
 
