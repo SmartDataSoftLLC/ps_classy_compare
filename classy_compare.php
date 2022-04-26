@@ -58,6 +58,10 @@ class Classy_Compare extends Module
         Configuration::updateValue('CLCOMPARE_ADDED_TEXT', 'Added to Compare');
 
         Configuration::updateValue('CLCOMPARE_MAX', '6');
+        Configuration::updateValue('CLCOMPARE_DESCRIPTION', '1');
+        Configuration::updateValue('CLCOMPARE_PRICE', '1');
+        Configuration::updateValue('CLCOMPARE_CONDITION', '1');
+        Configuration::updateValue('CLCOMPARE_AVAILABILITY', '1');
         return parent::install()
             && $this->registerHook([
                 'actionFrontControllerSetMedia',
@@ -183,6 +187,10 @@ class Classy_Compare extends Module
         }
         if (Tools::isSubmit('submitCompareDetailsSettings')) {
             Configuration::updateValue('CLCOMPARE_MAX', Tools::getValue('CLCOMPARE_MAX'));
+            Configuration::updateValue('CLCOMPARE_DESCRIPTION', Tools::getValue('CLCOMPARE_DESCRIPTION'));
+            Configuration::updateValue('CLCOMPARE_PRICE', Tools::getValue('CLCOMPARE_PRICE'));
+            Configuration::updateValue('CLCOMPARE_CONDITION', Tools::getValue('CLCOMPARE_CONDITION'));
+            Configuration::updateValue('CLCOMPARE_AVAILABILITY', Tools::getValue('CLCOMPARE_AVAILABILITY'));
             $output = $this->displayConfirmation($this->trans('Settings updated.', array(), 'Modules.Classycompare.Admin'));
         }
         $output = $this->license_form();
@@ -283,8 +291,85 @@ class Classy_Compare extends Module
                 'name'     => 'CLCOMPARE_MAX',
                 'size'     => 70,
                 'required' => false
+            ),
+            array(
+                'type'     => 'switch',
+                'label'    => $this->trans('Show Description', [], 'Modules.Classycompare.Admin'),
+                'name'     => 'CLCOMPARE_DESCRIPTION',
+                'required' => false,
+                'is_bool'  => true,
+                'values'   => array(
+                    array(
+                        'id'    => 'active_on',
+                        'value' => 1,
+                        'label' => $this->trans('Yes', [], 'Modules.Classycompare.Admin'),
+                    ),
+                    array(
+                        'id'    => 'active_off',
+                        'value' => 0,
+                        'label' => $this->trans('No', [], 'Modules.Classycompare.Admin'),
+                    ),
+                ),
+            ),
+            array(
+                'type'     => 'switch',
+                'label'    => $this->trans('Show Price', [], 'Modules.Classycompare.Admin'),
+                'name'     => 'CLCOMPARE_PRICE',
+                'required' => false,
+                'is_bool'  => true,
+                'values'   => array(
+                    array(
+                        'id'    => 'active_on',
+                        'value' => 1,
+                        'label' => $this->trans('Yes', [], 'Modules.Classycompare.Admin'),
+                    ),
+                    array(
+                        'id'    => 'active_off',
+                        'value' => 0,
+                        'label' => $this->trans('No', [], 'Modules.Classycompare.Admin'),
+                    ),
+                ),
+            ),
+            array(
+                'type'     => 'switch',
+                'label'    => $this->trans('Show Condition', [], 'Modules.Classycompare.Admin'),
+                'name'     => 'CLCOMPARE_CONDITION',
+                'required' => false,
+                'is_bool'  => true,
+                'values'   => array(
+                    array(
+                        'id'    => 'active_on',
+                        'value' => 1,
+                        'label' => $this->trans('Yes', [], 'Modules.Classycompare.Admin'),
+                    ),
+                    array(
+                        'id'    => 'active_off',
+                        'value' => 0,
+                        'label' => $this->trans('No', [], 'Modules.Classycompare.Admin'),
+                    ),
+                ),
+            ),
+            array(
+                'type'     => 'switch',
+                'label'    => $this->trans('Show Availability', [], 'Modules.Classycompare.Admin'),
+                'name'     => 'CLCOMPARE_AVAILABILITY',
+                'required' => false,
+                'is_bool'  => true,
+                'values'   => array(
+                    array(
+                        'id'    => 'active_on',
+                        'value' => 1,
+                        'label' => $this->trans('Yes', [], 'Modules.Classycompare.Admin'),
+                    ),
+                    array(
+                        'id'    => 'active_off',
+                        'value' => 0,
+                        'label' => $this->trans('No', [], 'Modules.Classycompare.Admin'),
+                    ),
+                ),
             )
         );
+        
         $args['field'] = $field;
         $args['submit_action'] = 'submitCompareDetailsSettings';
         return $this->generate_form($args);

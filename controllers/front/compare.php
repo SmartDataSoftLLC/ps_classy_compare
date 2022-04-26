@@ -23,9 +23,19 @@ class Classy_CompareCompareModuleFrontController extends ModuleFrontController
                 $presentationSettings = $presenterFactory->getPresentationSettings();
                 $presenter = $presenterFactory->getPresenter();
                 $products_for_template = [];
+
+                $list_ids = array();
+                $compare_data = array();
+                $compare_data_hidden = array();
+                $add_cart_arrays = array();
+                $condition_array = array();
+
                 foreach ( $id_product_json as $k => &$id) {
                     $curProduct = new Product((int)$id, true, $this->context->language->id);
                     $curProduct->id_product = $id;
+
+                    $condition_array[$curProduct->id_product] = $curProduct->condition;
+
                     // Validate product object
                     if (!Validate::isLoadedObject($curProduct) || !$curProduct->active || !$curProduct->isAssociatedToShop()) {
                         unset($ids[$k]);
@@ -41,26 +51,28 @@ class Classy_CompareCompareModuleFrontController extends ModuleFrontController
                     );
                 }
 
-
-                $list_ids = array();
-                $compare_data = array();
-                $compare_data_hidden = array();
-                $add_cart_arrays = array();
                 foreach($products_for_template as $product){
                     $list_ids[] = $product['id_product'];
                     $compare_data['id'][$product['id_product']] = $product['id_product'];
                     $compare_data['thumbnail'][$product['id_product']] = $product['cover']['bySize']['home_default']['url'];
                     $compare_data['name'][$product['id_product']] = $product['name'];
-                    $compare_data['description'][$product['id_product']] = $product['description_short'];
-                    $compare_data['price'][$product['id_product']] = $product['price'];
-                    
-                    if($product['quantity'] > 0){
-                        $compare_data['availability'][$product['id_product']] = $product['quantity'] . $this->trans(' Items', [], 'Modules.Classycompare.Shop');
-                    }else{
-                        $compare_data['availability'][$product['id_product']] = $this->trans('Out of Stock', [], 'Modules.Classycompare.Shop');
+                    if(Configuration::get('CLCOMPARE_DESCRIPTION')){
+                        $compare_data['description'][$product['id_product']] = $product['description_short'];
+                    }
+                    if(Configuration::get('CLCOMPARE_PRICE')){
+                        $compare_data['price'][$product['id_product']] = $product['price'];
+                    }
+                    if(Configuration::get('CLCOMPARE_CONDITION')){
+                        $compare_data['condition'][$product['id_product']] = $condition_array[$product['id_product']];
+                    }
+                    if(Configuration::get('CLCOMPARE_AVAILABILITY')){
+                        if($product['quantity'] > 0){
+                            $compare_data['availability'][$product['id_product']] = $product['quantity'] . $this->trans(' Items', [], 'Modules.Classycompare.Shop');
+                        }else{
+                            $compare_data['availability'][$product['id_product']] = $this->trans('Out of Stock', [], 'Modules.Classycompare.Shop');
+                        }
                     }
                     
-
                     foreach ($product['features'] as $feature) {
                         if(isset($compare_data[$feature['name']][$product['id_product']])){
                             $compare_data[$feature['name']][$product['id_product']] .= ', ' .$feature['value'];
