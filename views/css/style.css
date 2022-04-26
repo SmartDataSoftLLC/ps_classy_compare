@@ -1,3 +1,17 @@
+.compare-details-section{
+    background: #fff;
+    overflow-x: scroll;
+    border: 6px solid #fff;
+}
+.page-title{
+    text-align: center;
+    padding: 10px;
+}
+
+table tr th {
+    position: sticky;
+    left: 0;
+}
 .class_compare_button{
     display: block;
 }
@@ -5,8 +19,19 @@
     display: flex;
 }
 .with-background{
-    background: #d9d9d9;
+    background: #f6f6f6;
 }
 .no-background{
-    background: #f6f6f6;
+    background: #fff;
+}
+.regular_price{
+    text-decoration: line-through;
+    font-size: 13px;
+    color: #7a7a7a;
+}
+.discount_amount{
+    padding: 4px;
+    background: #f39d72;
+    font-size: 15px;
+    color: #fff;
 }

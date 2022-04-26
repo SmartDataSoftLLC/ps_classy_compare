@@ -29,19 +29,21 @@
 *}
 {extends file='page.tpl'}
 {block name='page_title'}
-  {l s='Compare Details' d='Modules.Classycompare.Shop'}
+  <div class="page-title">
+    <h2>{l s='Compare Details' d='Modules.Classycompare.Shop'}</h3>
+  </div>
 {/block}
-
-{block name='page_content'}
+<div class="compare-details-section">
+  {block name='page_content'}
     <table class="table table-labeled hidden-sm-down">
-        <tbody>
-          {assign var="class" value="no"}
+      <tbody>
+        {assign var="class" value="no"}
           {foreach from=$compare_data key=k item=data}
             {if $k == "id"}
               <tr>
                 <th></th>
                 {foreach from=$list_ids key=id item=value}
-                    <td class="compare-item-{$value}">
+                    <td class="compare-item-{$value} compare-item-{$k}">
                       <a href="#"  data-id-product="{$value}"  class="btn btn-danger remove_compare_button"> <i class="material-icons ">delete</i>{l s='Remove' d='Modules.Classycompare.Shop'}</a>
                     </td>
                 {/foreach}
@@ -50,8 +52,8 @@
               <tr>
                 <th></th>
                 {foreach from=$list_ids item=value}
-                    <td class="compare-item-{$value}">
-                      <a href="{$product_links.$value}" target="_blank">
+                    <td class="compare-item-{$value} compare-item-{$k}">
+                      <a href="{$compare_data_hidden.link.$value}" target="_blank">
                         <img
                           class="img-fluid"
                           src="{$data.$value}"
@@ -62,22 +64,11 @@
                     </td>
                 {/foreach}
               </tr>
-            {elseif $k == "discounted"}
-              <tr class="{$class}-background">
-                <th>{$k|ucfirst}</th>
-                {foreach from=$list_ids key=id item=value}
-                  {if $data.$value == true}
-                    <td class="compare-item-{$value}">{l s='Yes' d='Modules.Classycompare.Shop'}</td>
-                  {else} 
-                    <td class="compare-item-no-value">{l s='No' d='Modules.Classycompare.Shop'}</td>
-                  {/if}
-                {/foreach}
-              </tr>
             {elseif $k == "add_cart"}
               <tr>
                 <th></th>
                 {foreach from=$list_ids key=id item=value}
-                  <td class="compare-item-no-value">
+                  <td class="compare-item-{$value}">
                     <a href="{$data.$value}" class="btn btn-primary add-to-cart">
                       <i class="material-icons shopping-cart"></i>
                       {l s='Add to Cart' d='Modules.Classycompare.Shop'}
@@ -87,20 +78,26 @@
               </tr>
             {else}
               <tr class="{$class}-background">
-                <th>{$k|ucfirst}</th>
+                <th class="{$class}-background">{$k|ucfirst}</th>
                 {foreach from=$list_ids key=id item=value}
                   {if isset($data.$value)}
-                    <td class="compare-item-{$value}">
+                    <td class="compare-item-{$value} compare-item-{$k}">
                       {if $k == "name"}
-                        <a href="{$product_links.$value}" target="_blank">
+                        <a href="{$compare_data_hidden.link.$value}" target="_blank">
                       {/if}
-                      {$data.$value}
+                      {if $k == "price" && $compare_data_hidden.discounted.$value == "1"}
+                          <span class="regular_price">{$compare_data_hidden.regular_price.$value}</span>
+                          <span class="discount_amount">{$compare_data_hidden.discount_amount.$value}</span>
+                          {$data.$value}
+                      {else}
+                        {$data.$value nofilter}
+                      {/if}
                       {if $k == "name"}
                         </a>
                       {/if}
                     </td>
                   {else} 
-                    <td class="compare-item-no-value">{l s='--' d='Modules.Classycompare.Shop'}</td>
+                    <td class="compare-item-{$value} compare-item-no-value">{l s='--' d='Modules.Classycompare.Shop'}</td>
                   {/if}
                 {/foreach}
               </tr>
@@ -111,7 +108,8 @@
               {assign "class" "no"}
             {/if}
           {/foreach}
-      </tbody>
-    </table>
-{/block}
-{/block}
+        </tbody>
+      </table>
+    {/block}
+  {/block}
+</div>
