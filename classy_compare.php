@@ -58,24 +58,38 @@ class Classy_Compare extends Module
         Configuration::updateValue('CLCOMPARE_ADDED_TEXT', 'Added to Compare');
 
         Configuration::updateValue('CLCOMPARE_MAX', '6');
+        Configuration::updateValue('CLCOMPARE_REWRITE', 'compare');
         Configuration::updateValue('CLCOMPARE_DESCRIPTION', '1');
         Configuration::updateValue('CLCOMPARE_PRICE', '1');
         Configuration::updateValue('CLCOMPARE_CONDITION', '1');
         Configuration::updateValue('CLCOMPARE_AVAILABILITY', '1');
+        Configuration::updateValue('CLCOMPARE_MANUFCTURER', '0');
+        Configuration::updateValue('CLCOMPARE_SUPPLIER', '0');
+        Configuration::updateValue('CLCOMPARE_FEATURES', '1');
+        Configuration::updateValue('CLCOMPARE_ADDCART', '1');
         return parent::install()
-            && $this->registerHook([
-                'actionFrontControllerSetMedia',
-                'displayNav2',
-                'displayProductPriceBlock',
-                'displayProductActions'
-            ]);
+            && $this->registerHook(
+                [
+                    'actionFrontControllerSetMedia',
+                    'displayNav2',
+                    'displayProductPriceBlock',
+                    'displayProductActions',
+                    'moduleRoutes'
+                ]
+            );
     }
     public function hookActionFrontControllerSetMedia()
     {
         $added_text = Configuration::get('CLCOMPARE_ADDED_TEXT', 'Added to Compare');
+        $rewrite = Configuration::get('CLCOMPARE_REWRITE', 'compare');
+        $compare_url = Classy_Compare::GetClassyCompareLink($rewrite);
+
+        $link_text = $this->trans('See Comparison', [], 'Modules.Classycompare.Shop');
+
         Media::addJsDef([
             'classy_product_compare' => $this->context->link->getModuleLink($this->name, 'addcompare', [], true),
-            'classy_product_compare' => $this->context->link->getModuleLink($this->name, 'addcompare', [], true),
+            'compare_url' => $compare_url,
+            'link_text' => $link_text,
             'added_text' => $added_text
         ]);
 
@@ -104,19 +118,22 @@ class Classy_Compare extends Module
 
     public function  hookDisplayProductActions($params){
         $product = $params['product'];
+        $btn_class = 'compare-btn-single';
         $position = Configuration::get('CLCOMPARE_SINGLE_POSITION','product_actions');
         if($position != 'product_actions'){
             return;
         }
-        return $this->fetch_template($product);
+        return $this->fetch_template($product, $btn_class);
     }
 
     public function hookDisplayProductPriceBlock($params){
 
         $controller = Tools::getValue('controller');
         $position_string = '';
+        $btn_class = 'compare-btn-multi';
         if($controller == 'product'){
             $position_string = 'single';
+            $btn_class = 'compare-btn-single';
             $position = Configuration::get('CLCOMPARE_SINGLE_POSITION','product_actions');
             if($position == 'product_actions'){
                 return;
@@ -142,10 +159,10 @@ class Classy_Compare extends Module
             }
         }
         $product = $params['product'];
-        return $this->fetch_template($product);
+        return $this->fetch_template($product, $btn_class);
     }
 
-    public function fetch_template($product){
+    public function fetch_template($product, $class = 'compare-btn-multi'){
         $idProduct = $product['id_product'];
         $filePath = 'module:classy_compare/views/templates/hook/classy-compare-button.tpl';
         $added_already = 0;
@@ -160,10 +177,76 @@ class Classy_Compare extends Module
         $this->smarty->assign( [
             'id_product' => $idProduct,
             'added_already' => $added_already,
+            'btn_class' => $class,
             'compare_text' => Configuration::get('CLCOMPARE_TEXT',''),
             'addes_compare_text' => Configuration::get('CLCOMPARE_ADDED_TEXT','')
         ]);
         return $this->fetch($filePath);
+    }
+
+    public function hookModuleRoutes($params)
+    {
+        $alias = Configuration::get('CLCOMPARE_REWRITE');
+        $my_link = array();
+        $my_link = $this->urlPatterWithoutId($alias);
+        return $my_link;
+    }
+
+    public function urlPatterWithoutId($alias)
+    {
+        $my_link = array(
+            Configuration::get('CLCOMPARE_REWRITE') => array(
+                'controller' => 'compare',
+                'rule' => $alias,
+                'keywords' => array(),
+                'params' => array(
+                    'fc' => 'module',
+                    'module' => 'classy_compare',
+                )
+            )
+        );
+        return $my_link;
+    }
+
+    public static function GetClassyCompareUrl()
+    {
+        $ssl_enable = Configuration::get('PS_SSL_ENABLED');
+        $id_lang = (int) Context::getContext()->language->id;
+        $id_shop = (int) Context::getContext()->shop->id;
+        $rewrite_set = (int) Configuration::get('PS_REWRITING_SETTINGS');
+        $ssl = null;
+        static $force_ssl = null;
+        if ($ssl === null) {
+            if ($force_ssl === null)
+                $force_ssl = (Configuration::get('PS_SSL_ENABLED') && Configuration::get('PS_SSL_ENABLED_EVERYWHERE'));
+            $ssl = $force_ssl;
+        }
+
+        if (Configuration::get('PS_MULTISHOP_FEATURE_ACTIVE') && $id_shop !== null)
+            $shop = new Shop($id_shop);
+        else
+            $shop = Context::getContext()->shop;
+        $base = ($ssl == 1 && $ssl_enable == 1) ? 'https://' . $shop->domain_ssl : 'http://' . $shop->domain;
+        $langUrl = Language::getIsoById($id_lang) . '/';
+        if ((!$rewrite_set && in_array($id_shop, array((int) Context::getContext()->shop->id, null))) || !Language::isMultiLanguageActivated($id_shop) || !(int) Configuration::get('PS_REWRITING_SETTINGS', null, null, $id_shop))
+            $langUrl = '';
+
+        return $base . $shop->getBaseURI() . $langUrl;
+    }
+
+    public static function GetClassyCompareLink($rewrite = 'compare', $params = null, $id_shop = null, $id_lang = null)
+    {
+
+        $url = Classy_Compare::GetClassyCompareUrl();
+        $dispatcher = Dispatcher::getInstance();
+        $id_lang = (int) Context::getContext()->language->id;
+        $force_routes = (bool) Configuration::get('PS_REWRITING_SETTINGS');
+        if ($params != null) {
+            return $url . $dispatcher->createUrl($rewrite, $id_lang, $params, $force_routes);
+        } else {
+            $params = array();
+            return $url . $dispatcher->createUrl($rewrite, $id_lang, $params, $force_routes);
+        }
     }
 
     public function getContent()
@@ -187,10 +270,15 @@ class Classy_Compare extends Module
         }
         if (Tools::isSubmit('submitCompareDetailsSettings')) {
             Configuration::updateValue('CLCOMPARE_MAX', Tools::getValue('CLCOMPARE_MAX'));
+            Configuration::updateValue('CLCOMPARE_REWRITE', Tools::getValue('CLCOMPARE_REWRITE'));
             Configuration::updateValue('CLCOMPARE_DESCRIPTION', Tools::getValue('CLCOMPARE_DESCRIPTION'));
             Configuration::updateValue('CLCOMPARE_PRICE', Tools::getValue('CLCOMPARE_PRICE'));
             Configuration::updateValue('CLCOMPARE_CONDITION', Tools::getValue('CLCOMPARE_CONDITION'));
             Configuration::updateValue('CLCOMPARE_AVAILABILITY', Tools::getValue('CLCOMPARE_AVAILABILITY'));
+            Configuration::updateValue('CLCOMPARE_MANUFCTURER', Tools::getValue('CLCOMPARE_MANUFCTURER'));
+            Configuration::updateValue('CLCOMPARE_SUPPLIER', Tools::getValue('CLCOMPARE_SUPPLIER'));
+            Configuration::updateValue('CLCOMPARE_FEATURES', Tools::getValue('CLCOMPARE_FEATURES'));
+            Configuration::updateValue('CLCOMPARE_ADDCART', Tools::getValue('CLCOMPARE_ADDCART'));
             $output = $this->displayConfirmation($this->trans('Settings updated.', array(), 'Modules.Classycompare.Admin'));
         }
         $output = $this->license_form();
@@ -293,6 +381,13 @@ class Classy_Compare extends Module
                 'required' => false
             ),
             array(
+                'type'     => 'text',
+                'label'    => $this->trans('Details Page Url', [], 'Modules.Classycompare.Admin'),
+                'name'     => 'CLCOMPARE_REWRITE',
+                'size'     => 70,
+                'required' => false
+            ),
+            array(
                 'type'     => 'switch',
                 'label'    => $this->trans('Show Description', [], 'Modules.Classycompare.Admin'),
                 'name'     => 'CLCOMPARE_DESCRIPTION',
@@ -353,6 +448,82 @@ class Classy_Compare extends Module
                 'type'     => 'switch',
                 'label'    => $this->trans('Show Availability', [], 'Modules.Classycompare.Admin'),
                 'name'     => 'CLCOMPARE_AVAILABILITY',
+                'required' => false,
+                'is_bool'  => true,
+                'values'   => array(
+                    array(
+                        'id'    => 'active_on',
+                        'value' => 1,
+                        'label' => $this->trans('Yes', [], 'Modules.Classycompare.Admin'),
+                    ),
+                    array(
+                        'id'    => 'active_off',
+                        'value' => 0,
+                        'label' => $this->trans('No', [], 'Modules.Classycompare.Admin'),
+                    ),
+                ),
+            ),
+            array(
+                'type'     => 'switch',
+                'label'    => $this->trans('Show Manufacturer', [], 'Modules.Classycompare.Admin'),
+                'name'     => 'CLCOMPARE_MANUFCTURER',
+                'required' => false,
+                'is_bool'  => true,
+                'values'   => array(
+                    array(
+                        'id'    => 'active_on',
+                        'value' => 1,
+                        'label' => $this->trans('Yes', [], 'Modules.Classycompare.Admin'),
+                    ),
+                    array(
+                        'id'    => 'active_off',
+                        'value' => 0,
+                        'label' => $this->trans('No', [], 'Modules.Classycompare.Admin'),
+                    ),
+                ),
+            ),
+            array(
+                'type'     => 'switch',
+                'label'    => $this->trans('Show Supplier', [], 'Modules.Classycompare.Admin'),
+                'name'     => 'CLCOMPARE_SUPPLIER',
+                'required' => false,
+                'is_bool'  => true,
+                'values'   => array(
+                    array(
+                        'id'    => 'active_on',
+                        'value' => 1,
+                        'label' => $this->trans('Yes', [], 'Modules.Classycompare.Admin'),
+                    ),
+                    array(
+                        'id'    => 'active_off',
+                        'value' => 0,
+                        'label' => $this->trans('No', [], 'Modules.Classycompare.Admin'),
+                    ),
+                ),
+            ),
+            array(
+                'type'     => 'switch',
+                'label'    => $this->trans('Show Features', [], 'Modules.Classycompare.Admin'),
+                'name'     => 'CLCOMPARE_FEATURES',
+                'required' => false,
+                'is_bool'  => true,
+                'values'   => array(
+                    array(
+                        'id'    => 'active_on',
+                        'value' => 1,
+                        'label' => $this->trans('Yes', [], 'Modules.Classycompare.Admin'),
+                    ),
+                    array(
+                        'id'    => 'active_off',
+                        'value' => 0,
+                        'label' => $this->trans('No', [], 'Modules.Classycompare.Admin'),
+                    ),
+                ),
+            ),
+            array(
+                'type'     => 'switch',
+                'label'    => $this->trans('Show Add To Cart Button', [], 'Modules.Classycompare.Admin'),
+                'name'     => 'CLCOMPARE_ADDCART',
                 'required' => false,
                 'is_bool'  => true,
                 'values'   => array(

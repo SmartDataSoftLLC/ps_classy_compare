@@ -59,8 +59,8 @@ class Classy_CompareAddCompareModuleFrontController extends ModuleFrontControlle
 
                 $this->context->cookie->__set('compare_product',  $product_ids_json);
                 $this->context->cookie->write();
-
-                $result = json_encode(array('success' => 1,'count'=>count(  $id_product_json)));
+                $msg = $this->trans('Product Successfully Added to Comparison', [], 'Modules.Classycompare.Shop');
+                $result = json_encode(array('success' => 1,'count'=>count(  $id_product_json), 'msg' =>$msg));
                 die( $result);
 
             }else{
@@ -68,7 +68,8 @@ class Classy_CompareAddCompareModuleFrontController extends ModuleFrontControlle
                 $product_ids_json = json_encode($product_ids, true ); 
                 $this->context->cookie->__set('compare_product',  $product_ids_json);
                 $this->context->cookie->write();
-                $result = json_encode(array('success' => 1,'count'=>count(  $product_ids)));
+                $msg = $this->trans('Product Successfully Added to Comparison', [], 'Modules.Classycompare.Shop');
+                $result = json_encode(array('success' => 1,'count'=>count(  $product_ids), 'msg' =>$msg));
                 die( $result);
             }
         }else{
@@ -81,11 +82,13 @@ class Classy_CompareAddCompareModuleFrontController extends ModuleFrontControlle
                     unset($id_product_json[$key]);
                 }
             }
+            
             $product_ids_json = json_encode($id_product_json, true ); 
             $this->context->cookie->__set('compare_product',  $product_ids_json);
             $this->context->cookie->write();
 
-            $result = json_encode(array('success' => 1,'count'=>count(  $id_product_json)));
+            $msg = $this->trans('Product Successfully Added to Comparison', [], 'Modules.Classycompare.Shop');
+            $result = json_encode(array('success' => 1,'count'=>count(  $id_product_json), 'msg' =>$msg));
             die( $result);
         }
         die();

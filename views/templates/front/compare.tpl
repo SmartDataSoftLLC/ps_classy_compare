@@ -39,6 +39,12 @@
       <table class="table table-labeled hidden-sm-down">
         <tbody>
           {assign var="class" value="no"}
+            <tr>
+              <td class="compare-table-top" colspan="{count($list_ids)+1}">
+                <input type="checkbox" id="highlight" name="highlight">
+                <label for="highlight"> {l s='Highlight Diffrent Rows' d='Modules.Classycompare.Shop'}</label>
+              </td>
+            </tr>
             {foreach from=$compare_data key=k item=data}
               {if $k == "id"}
                 <tr>
@@ -78,7 +84,7 @@
                   {/foreach}
                 </tr>
               {else}
-                <tr class="{$class}-background">
+                <tr class="{$class}-background {$diff_array.$k}">
                   <th class="{$class}-background">{$k|ucfirst}</th>
                   {foreach from=$list_ids key=id item=value}
                     {if isset($data.$value)}

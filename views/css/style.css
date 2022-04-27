@@ -8,12 +8,17 @@
     padding: 10px;
 }
 #header .classy-compare-error-msg{
+    background: #c0392b;
+}
+#header .classy-compare-success-msg{
+    background: #5ca654;
+}
+#header .classy-compare-toast{
     position: fixed;
     bottom: 1000;
     right: 10px;
     width: 300px;
     color: #fff;
-    background: #c0392b;
     padding: 16px;
     border-radius: 4px;
 }
@@ -23,6 +28,9 @@ table, table tr td, table tr th{
 table tr th {
     position: sticky;
     left: 0;
+}
+.compare-table-top{
+    text-align: end;
 }
 .class_compare_button{
     display: block;
@@ -49,4 +57,69 @@ table tr th {
     background: #f39d72;
     font-size: 15px;
     color: #fff;
+}
+.classy-compare-diff.highlighted{
+    background-color: #f0bcbc;
+}
+.compare-quicklink{
+    font-size: 14px;
+    padding: 12px;
+    font-weight: 600;
+    font-style: italic;
+}
+#header .compare-quicklink:hover{
+    color: #fff;
+}
+.class_compare_button.compare-btn-single {
+    color: #fff;
+    background-color: #24b9d7;
+    border-color: rgba(0,0,0,0);
+    margin-left: 0.4rem;
+    padding: 12px 25px;
+    line-height: 0px;
+    overflow: hidden;
+    display: inline-flex;
+    height: 44px;
+    align-items: center;
+    font-weight: 600;
+    font-size: 16px;
+    text-decoration: none;
+}
+.class_compare_button.compare-btn-single:hover{
+    color: #fff;
+    background-color: #1d93ab;
+    border-color: rgba(0,0,0,0);
+    
+}
+.class_compare_button.compare-btn-single .material-icons.compare{
+    margin-right: .625rem;
+}
+.class_compare_button.compare-btn-single.added{
+    color: #000;
+    background-color: #d9d9d9;
+    text-decoration: none;
+}
+.class_compare_button.compare-btn-multi {
+    font-size: 14px;
+    background-color: #24b9d7;
+    color: #fff;
+    padding: 5px 0px;
+    margin-top: 8px;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    text-decoration: none;
+}
+.class_compare_button.compare-btn-multi:hover {
+    color: #fff;
+    background-color: #1d93ab;
+}
+.class_compare_button.compare-btn-multi.added{
+    color: #000;
+    background-color: #d9d9d9;
+}
+.class_compare_button.compare-btn-multi .material-icons.compare{
+      font-size: 14px;
+      margin-right: 5px;
+      margin-top: 3px;
 }
