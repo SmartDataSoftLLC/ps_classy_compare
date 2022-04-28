@@ -72,7 +72,7 @@ table tr th {
 }
 .class_compare_button.compare-btn-single {
     color: #fff;
-    background-color: #24b9d7;
+    background-color: #1d93ab;
     border-color: rgba(0,0,0,0);
     margin-left: 0.4rem;
     padding: 12px 25px;
@@ -84,10 +84,12 @@ table tr th {
     font-weight: 600;
     font-size: 16px;
     text-decoration: none;
+    opacity: .8;
+    transition: .2s;
 }
 .class_compare_button.compare-btn-single:hover{
     color: #fff;
-    background-color: #1d93ab;
+    opacity: 1;
     border-color: rgba(0,0,0,0);
     
 }
@@ -101,7 +103,7 @@ table tr th {
 }
 .class_compare_button.compare-btn-multi {
     font-size: 14px;
-    background-color: #24b9d7;
+    background-color: #1d93ab;
     color: #fff;
     padding: 5px 0px;
     margin-top: 8px;
@@ -109,10 +111,12 @@ table tr th {
     justify-content: center;
     align-content: center;
     text-decoration: none;
+    opacity: .8;
+    transition: .2s;
 }
 .class_compare_button.compare-btn-multi:hover {
     color: #fff;
-    background-color: #1d93ab;
+    opacity: 1;
 }
 .class_compare_button.compare-btn-multi.added{
     color: #000;
@@ -123,3 +127,23 @@ table tr th {
       margin-right: 5px;
       margin-top: 3px;
 }
+.classy-compare-top-bt{
+    height: 3rem;
+    padding: 0.75rem;
+    margin-left: 0.9375rem;
+    text-align: center;
+    white-space: nowrap;
+    background: #f6f6f6;
+}
+.classy-compare-top-bt .header a:hover i,
+.classy-compare-top-bt .header a:hover .compare-products-count{
+    color: #24b9d7;
+}
+.classy-compare-top-bt .header i,
+.classy-compare-top-bt .header .compare-products-count{
+    margin-top: 0.125rem;
+    color:#7a7a7a;
+    text-decoration: none;
+}
+
+

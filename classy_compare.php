@@ -28,7 +28,10 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
+define('_MODULE_CLCOMPARE_URL_', _PS_BASE_URL_SSL_ . __PS_BASE_URI__ . '/modules/' . 'classy_compare/');
+define('_MODULE_CLCOMPARE_IMAGE_URL_', _MODULE_CLCOMPARE_URL_ . '/images/');
+
+require_once(dirname(__FILE__) . '/classes/classy_compare_updater.php');
 
 class Classy_Compare extends Module 
 {
@@ -52,10 +55,28 @@ class Classy_Compare extends Module
     }
     public function install()
     {
-        Configuration::updateValue('CLCOMPARE_TEXT', 'Add to Compare');
+        $this->set_defaults();
+        return parent::install()
+            && $this->registerHook(
+                [
+                    'actionFrontControllerSetMedia',
+                    'displayNav2',
+                    'displayProductPriceBlock',
+                    'displayProductActions',
+                    'displayDashboardTop',
+                    'moduleRoutes'
+                ]
+            );
+    }
+    public function set_defaults(){
+        Configuration::updateValue('CLCOMPARE_TEXT', 'Compare Now');
         Configuration::updateValue('CLCOMPARE_POSITION', 'before_price');
         Configuration::updateValue('CLCOMPARE_SINGLE_POSITION', 'product_actions');
         Configuration::updateValue('CLCOMPARE_ADDED_TEXT', 'Added to Compare');
+        Configuration::updateValue('CLCOMPARE_BUTTON_BACK_COLOR', '#24b9d7');
+        Configuration::updateValue('CLCOMPARE_BUTTON_TEXT_COLOR', '#ffffff');
+        Configuration::updateValue('CLCOMPARE_BUTTON_ABACK_COLOR', '#d9d9d9');
+        Configuration::updateValue('CLCOMPARE_BUTTON_ATEXT_COLOR', '#000000');
 
         Configuration::updateValue('CLCOMPARE_MAX', '6');
         Configuration::updateValue('CLCOMPARE_REWRITE', 'compare');
@@ -67,16 +88,6 @@ class Classy_Compare extends Module
         Configuration::updateValue('CLCOMPARE_SUPPLIER', '0');
         Configuration::updateValue('CLCOMPARE_FEATURES', '1');
         Configuration::updateValue('CLCOMPARE_ADDCART', '1');
-        return parent::install()
-            && $this->registerHook(
-                [
-                    'actionFrontControllerSetMedia',
-                    'displayNav2',
-                    'displayProductPriceBlock',
-                    'displayProductActions',
-                    'moduleRoutes'
-                ]
-            );
     }
     public function hookActionFrontControllerSetMedia()
     {
@@ -96,8 +107,58 @@ class Classy_Compare extends Module
         $this->context->controller->registerJavascript('modules-classycompare', 'modules/' . $this->name . '/views/js/js_classycompare.js');
         $this->context->controller->registerStylesheet('classycompare-style', 'modules/' . $this->name . '/views/css/style.css', ['media' => 'all', 'priority' => 50]);
     }
+    public function hookDisplayDashboardTop()
+	{		
+        $controller = Tools::getValue('controller');
+		if($controller == 'AdminModulesManage' || $controller == 'AdminModules' || $controller == 'AdminCategories' || $controller == 'AdminModulesPositions'){
+			return;
+		}
+		new ClassyCompareUpdater($this->version);
+		echo $this->promoHtml();
+	}
+    public function promoHtml(){
+        $changelog = Configuration::get('CLCOMPARE_CHANGELOG');
+        if(!isset($changelog) || $changelog =='' || $changelog == 'null'){
+            return;
+        }
+        $changelog = strip_tags($changelog);
+        $changelog = Tools::jsonDecode( $changelog, true );
+        $html = '';
+        if(is_array($changelog)){
+            foreach($changelog as $change){
+                    $html .= '<a href="'.$change['url'].'"
+                    target="_blank">
+                    <img src="'.$change['image_url'].'"
+                        alt="Logo">
+                </a>';
+            }
+        }
+        return '
+        <style> .classy-promo-banner{
+            justify-content: space-between;
+            display: flex;
+        }  </style>
+        <div class="row">
+        <div class="col-lg-12">
+            <div class="panel dashboard-presents-product-area">
+                <div class="dashboard-presents-product-container">
+                    <div class="dashboard-presents-product-bottom-content">
+                        <!-- single item -->
+                        <div class="dashboar-single-presents-item classy-promo-banner db-second-item">
+                            '.$html.'
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>';
+    }
     public function hookDisplayNav2($params)
     {
+        $validity = Configuration::get('CLCOMPARE_LICENCE_VALIDITY');
+        if($validity != 'valid'){
+            return;
+        }
         $compare_link = $this->context->link->getModuleLink('classy_compare', 'compare', [], true); 
         $compare_products_count = 0;
         if($this->context->cookie->__isset('compare_product')){
@@ -163,6 +224,10 @@ class Classy_Compare extends Module
     }
 
     public function fetch_template($product, $class = 'compare-btn-multi'){
+        $validity = Configuration::get('CLCOMPARE_LICENCE_VALIDITY');
+        if($validity != 'valid'){
+            return;
+        }
         $idProduct = $product['id_product'];
         $filePath = 'module:classy_compare/views/templates/hook/classy-compare-button.tpl';
         $added_already = 0;
@@ -179,13 +244,21 @@ class Classy_Compare extends Module
             'added_already' => $added_already,
             'btn_class' => $class,
             'compare_text' => Configuration::get('CLCOMPARE_TEXT',''),
-            'addes_compare_text' => Configuration::get('CLCOMPARE_ADDED_TEXT','')
+            'addes_compare_text' => Configuration::get('CLCOMPARE_ADDED_TEXT',''),
+            'background' => Configuration::get('CLCOMPARE_BUTTON_BACK_COLOR'),
+            'textcolor' => Configuration::get('CLCOMPARE_BUTTON_TEXT_COLOR'),
+            'a_background' => Configuration::get('CLCOMPARE_BUTTON_ABACK_COLOR'),
+            'a_textcolor' => Configuration::get('CLCOMPARE_BUTTON_ATEXT_COLOR'),
         ]);
         return $this->fetch($filePath);
     }
 
     public function hookModuleRoutes($params)
     {
+        $validity = Configuration::get('CLCOMPARE_LICENCE_VALIDITY');
+        if($validity != 'valid'){
+            return;
+        }
         $alias = Configuration::get('CLCOMPARE_REWRITE');
         $my_link = array();
         $my_link = $this->urlPatterWithoutId($alias);
@@ -251,50 +324,87 @@ class Classy_Compare extends Module
 
     public function getContent()
     {
-        if (Tools::isSubmit('submitCompareSettings')) {
-            Configuration::updateValue('CLCOMPARE_TEXT', Tools::getValue('CLCOMPARE_TEXT'));
-            Configuration::updateValue('CLCOMPARE_POSITION', Tools::getValue('CLCOMPARE_POSITION'));
-            Configuration::updateValue('CLCOMPARE_SINGLE_POSITION', Tools::getValue('CLCOMPARE_SINGLE_POSITION'));
-            Configuration::updateValue('CLCOMPARE_ADDED_TEXT', Tools::getValue('CLCOMPARE_ADDED_TEXT'));
+        $output = "";
+        if (Tools::isSubmit('submitCompareLicense')) {
+            $l_key = Tools::getValue('CLCOMPARE_LICENCE');
+			if($l_key == '' || $l_key == null){
+				$output .= $this->displayError($this->trans('Please Enter a Purchase Code!!!', [], 'Modules.Classycompare.Admin'));
+			}else{
+				$validity = Configuration::get('CLCOMPARE_LICENCE_VALIDITY');
+                if($validity == 'valid'){
+                    $this->set_defaults();
 
-            if(Tools::getValue('CLCOMPARE_SINGLE_POSITION') == 'product_actions'){
-                $this->registerHook('displayProductActions');
-            }else{
-                $this->unregisterHook('displayProductActions');
+                    $output .= $this->displayConfirmation($this->trans('Settings Updated'));
+                }else{
+                    $lic = new ClassyCompareUpdater($this->version);
+                    if($lic->activate_license($l_key)){
+                        $this->set_defaults();
+                        $this->_html = $this->displayConfirmation($this->l('Configuration updated'));
+                        Configuration::updateValue('CLCOMPARE_LICENCE_VALIDITY', 'valid');
+                    }else{
+                        $output .= $this->displayError($this->trans('Invalid Purchase Code!!!', [], 'Modules.Classycompare.Admin'));
+                    }
+                }
             }
+        }
+        $validity = Configuration::get('CLCOMPARE_LICENCE_VALIDITY');
+        $output .= $this->license_form();
+        if($validity == 'valid'){
+            if (Tools::isSubmit('submitCompareSettings')) {
+                Configuration::updateValue('CLCOMPARE_TEXT', Tools::getValue('CLCOMPARE_TEXT'));
+                Configuration::updateValue('CLCOMPARE_POSITION', Tools::getValue('CLCOMPARE_POSITION'));
+                Configuration::updateValue('CLCOMPARE_SINGLE_POSITION', Tools::getValue('CLCOMPARE_SINGLE_POSITION'));
+                Configuration::updateValue('CLCOMPARE_ADDED_TEXT', Tools::getValue('CLCOMPARE_ADDED_TEXT'));
 
-            foreach ($this->templates as $template) {
-                $this->_clearCache($template);
+                Configuration::updateValue('CLCOMPARE_BUTTON_BACK_COLOR', Tools::getValue('CLCOMPARE_BUTTON_BACK_COLOR'));
+                Configuration::updateValue('CLCOMPARE_BUTTON_TEXT_COLOR', Tools::getValue('CLCOMPARE_BUTTON_TEXT_COLOR'));
+                Configuration::updateValue('CLCOMPARE_BUTTON_ABACK_COLOR', Tools::getValue('CLCOMPARE_BUTTON_ABACK_COLOR'));
+                Configuration::updateValue('CLCOMPARE_BUTTON_ATEXT_COLOR', Tools::getValue('CLCOMPARE_BUTTON_ATEXT_COLOR'));
+    
+                if(Tools::getValue('CLCOMPARE_SINGLE_POSITION') == 'product_actions'){
+                    $this->registerHook('displayProductActions');
+                }else{
+                    $this->unregisterHook('displayProductActions');
+                }
+    
+                foreach ($this->templates as $template) {
+                    $this->_clearCache($template);
+                }
+                $output .= $this->displayConfirmation($this->trans('Settings updated.', array(), 'Modules.Classycompare.Admin'));
             }
-            $output = $this->displayConfirmation($this->trans('Settings updated.', array(), 'Modules.Classycompare.Admin'));
+            if (Tools::isSubmit('submitCompareDetailsSettings')) {
+                Configuration::updateValue('CLCOMPARE_MAX', Tools::getValue('CLCOMPARE_MAX'));
+                Configuration::updateValue('CLCOMPARE_REWRITE', Tools::getValue('CLCOMPARE_REWRITE'));
+                Configuration::updateValue('CLCOMPARE_DESCRIPTION', Tools::getValue('CLCOMPARE_DESCRIPTION'));
+                Configuration::updateValue('CLCOMPARE_PRICE', Tools::getValue('CLCOMPARE_PRICE'));
+                Configuration::updateValue('CLCOMPARE_CONDITION', Tools::getValue('CLCOMPARE_CONDITION'));
+                Configuration::updateValue('CLCOMPARE_AVAILABILITY', Tools::getValue('CLCOMPARE_AVAILABILITY'));
+                Configuration::updateValue('CLCOMPARE_MANUFCTURER', Tools::getValue('CLCOMPARE_MANUFCTURER'));
+                Configuration::updateValue('CLCOMPARE_SUPPLIER', Tools::getValue('CLCOMPARE_SUPPLIER'));
+                Configuration::updateValue('CLCOMPARE_FEATURES', Tools::getValue('CLCOMPARE_FEATURES'));
+                Configuration::updateValue('CLCOMPARE_ADDCART', Tools::getValue('CLCOMPARE_ADDCART'));
+                $output = $this->displayConfirmation($this->trans('Settings updated.', array(), 'Modules.Classycompare.Admin'));
+            }
+            $output .= $this->compare_setting_form();
+            $output .= $this->compare_details_setting_form();
         }
-        if (Tools::isSubmit('submitCompareDetailsSettings')) {
-            Configuration::updateValue('CLCOMPARE_MAX', Tools::getValue('CLCOMPARE_MAX'));
-            Configuration::updateValue('CLCOMPARE_REWRITE', Tools::getValue('CLCOMPARE_REWRITE'));
-            Configuration::updateValue('CLCOMPARE_DESCRIPTION', Tools::getValue('CLCOMPARE_DESCRIPTION'));
-            Configuration::updateValue('CLCOMPARE_PRICE', Tools::getValue('CLCOMPARE_PRICE'));
-            Configuration::updateValue('CLCOMPARE_CONDITION', Tools::getValue('CLCOMPARE_CONDITION'));
-            Configuration::updateValue('CLCOMPARE_AVAILABILITY', Tools::getValue('CLCOMPARE_AVAILABILITY'));
-            Configuration::updateValue('CLCOMPARE_MANUFCTURER', Tools::getValue('CLCOMPARE_MANUFCTURER'));
-            Configuration::updateValue('CLCOMPARE_SUPPLIER', Tools::getValue('CLCOMPARE_SUPPLIER'));
-            Configuration::updateValue('CLCOMPARE_FEATURES', Tools::getValue('CLCOMPARE_FEATURES'));
-            Configuration::updateValue('CLCOMPARE_ADDCART', Tools::getValue('CLCOMPARE_ADDCART'));
-            $output = $this->displayConfirmation($this->trans('Settings updated.', array(), 'Modules.Classycompare.Admin'));
-        }
-        $output = $this->license_form();
-        $output .= $this->compare_setting_form();
-        $output .= $this->compare_details_setting_form();
         return $output;
     }
 
     public function license_form(){
+        $validity = Configuration::get('CLCOMPARE_LICENCE_VALIDITY');
+        $msg = '<p class="alert alert-info"><a href="https://classydevs.com/classy-product-comparison-prestashop/?utm_source=backofc_licnse&utm_medium=backofc_licnse&utm_campaign=backofc_licnse&utm_id=backofc_licnse&utm_term=backofc_licnse&utm_content=backofc_licnse">Get License Code</a></p>';
+        if($validity == 'valid'){
+            $msg = '<p class="alert alert-success">Activated</p>';
+        }
         $args['title'] = $this->trans("License Settings", array(), 'Modules.Classycompare.Admin');
         $field = array(
             array(
                 'type'     => 'text',
                 'label'    => $this->trans('Purchase Code', [], 'Modules.Classycompare.Admin'),
-                'name'     => 'CLCOMPARE_PURCHASE_CODE',
+                'name'     => 'CLCOMPARE_LICENCE',
                 'size'     => 70,
+                'desc'     => $msg,
                 'required' => false
             )
         );
@@ -363,7 +473,27 @@ class Classy_Compare extends Module
                     'id' => 'id_pos',
                     'name' => 'name'
                 )
-            )
+                ),
+            array(
+                'type' 	=> 'color',
+                'label' => $this->trans('Button Background Color', [], 'Modules.Classycompare.Admin'),
+                'name'  => 'CLCOMPARE_BUTTON_BACK_COLOR',
+            ),
+            array(
+                'type'  => 'color',
+                'label' => $this->trans('Button Text Color', [], 'Modules.Classycompare.Admin'),
+                'name' 	=> 'CLCOMPARE_BUTTON_TEXT_COLOR',
+            ),
+            array(
+                'type' 	=> 'color',
+                'label' => $this->trans('Button Background Added Color', [], 'Modules.Classycompare.Admin'),
+                'name'  => 'CLCOMPARE_BUTTON_ABACK_COLOR',
+            ),
+            array(
+                'type'  => 'color',
+                'label' => $this->trans('Button Text Added Color', [], 'Modules.Classycompare.Admin'),
+                'name' 	=> 'CLCOMPARE_BUTTON_ATEXT_COLOR',
+            ),
         );
         $args['field'] = $field;
         $args['submit_action'] = 'submitCompareSettings';

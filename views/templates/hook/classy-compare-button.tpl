@@ -8,3 +8,14 @@
     </a>
 {/if}
 
+<style>
+    .class_compare_button.added{
+        color: {$a_textcolor} !important;
+        background-color: {$a_background} !important;
+    }
+
+    .class_compare_button {
+        background-color: {$background} !important;
+        color: {$textcolor} !important;
+    }
+</style>
