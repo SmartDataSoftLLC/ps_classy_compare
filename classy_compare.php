@@ -167,6 +167,9 @@ class Classy_Compare extends Module
             $id_product_json = json_decode($id_product_json, true);
             $compare_products_count = count($id_product_json);
         }
+        if(isset($_GET['showdemo'])){
+            $compare_products_count = 3;
+        }
         $this->context->smarty->assign(
             array(   
                 'compare_link' => $compare_link,

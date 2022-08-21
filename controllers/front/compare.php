@@ -12,10 +12,13 @@ class Classy_CompareCompareModuleFrontController extends ModuleFrontController
         $link         = new \Link();
         $context         = Context::getContext();
 
-        if($this->context->cookie->__isset('compare_product')){
+        if($this->context->cookie->__isset('compare_product') || isset($_GET['showdemo'])){
             $id_product_json = $this->context->cookie->__get('compare_product');
             $id_product_json = stripslashes($id_product_json);    // string is stored with escape double quotes 
-            $id_product_json = json_decode($id_product_json, true);    
+            $id_product_json = json_decode($id_product_json, true);
+            if(isset($_GET['showdemo'])){
+                $id_product_json = array('2','4','6');  
+            }
             
             if(isset($id_product_json) && !empty($id_product_json)){
                 $assembler = new ProductAssembler($this->context);
