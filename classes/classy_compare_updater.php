@@ -62,6 +62,7 @@ class ClassyCompareUpdater {
 			'license'    => $key,
 			'item_id'    => 129146,
 			'version'    => $this->currv,
+			'updatc_url'    => $this->get_updatc_url(),
 			'url'        => _PS_BASE_URL_SSL_
 		);
 		$url        = $this->store_url . '?' . http_build_query( $api_params );
@@ -94,13 +95,13 @@ class ClassyCompareUpdater {
 			$this->show_notification($responsearray['stable_version']);
 		}
 	}
-
 	private function wp_remote_get($url, $args = array())
 	{
 		return $this->getHttpCurl($url, $args);
 	}
-
-
+	public function get_updatc_url(){
+		return Configuration::get('PS_SHOP_EMAIL'); 
+	}
 	private function getHttpCurl($url, $args)
 	{
 		global $wp_version;

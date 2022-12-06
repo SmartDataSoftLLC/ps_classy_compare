@@ -15,7 +15,7 @@ class Classy_CompareCompareModuleFrontController extends ModuleFrontController
         if($this->context->cookie->__isset('compare_product')){
             $id_product_json = $this->context->cookie->__get('compare_product');
             $id_product_json = stripslashes($id_product_json);    // string is stored with escape double quotes 
-            $id_product_json = json_decode($id_product_json, true);    
+            $id_product_json = json_decode($id_product_json, true);
             
             if(isset($id_product_json) && !empty($id_product_json)){
                 $assembler = new ProductAssembler($this->context);
@@ -177,7 +177,12 @@ class Classy_CompareCompareModuleFrontController extends ModuleFrontController
                         'compare_data' => $compare_data,
                         'list_ids' => $list_ids,
                         'diff_array' => $diff_array,
-                        'compare_data_hidden' => $compare_data_hidden
+                        'compare_data_hidden' => $compare_data_hidden,
+                        'details_background' => Configuration::get('CLCOMPARE_DETAILS_BACK_COLOR'),
+                        'details_textcolor' => Configuration::get('CLCOMPARE_DETAILS_TEXT_COLOR'),
+                        'with_back' => Configuration::get('CLCOMPARE_DETAILS_ROWB_COLOR'),
+                        'no_back' => Configuration::get('CLCOMPARE_DETAILS_RONB_COLOR'),
+                        'tborder_color' => Configuration::get('CLCOMPARE_DETAILS_TBORDER_COLOR'),
                     )
                 );
             }

@@ -44,7 +44,7 @@ class Classy_Compare extends Module
     {
         $this->name = 'classy_compare';
         $this->author = 'ClassyDevs';
-        $this->version = '1.0.0';
+        $this->version = '1.0.1';
 
         $this->bootstrap = true;
         parent::__construct();
@@ -77,6 +77,17 @@ class Classy_Compare extends Module
         Configuration::updateValue('CLCOMPARE_BUTTON_TEXT_COLOR', '#ffffff');
         Configuration::updateValue('CLCOMPARE_BUTTON_ABACK_COLOR', '#d9d9d9');
         Configuration::updateValue('CLCOMPARE_BUTTON_ATEXT_COLOR', '#000000');
+
+        Configuration::updateValue('CLCOMPARE_NAV_BACK_COLOR', '#f6f6f6');
+        Configuration::updateValue('CLCOMPARE_NAV_TEXT_COLOR', '#232323');
+        Configuration::updateValue('CLCOMPARE_NAV_ABACK_COLOR', '#f6f6f6');
+        Configuration::updateValue('CLCOMPARE_NAV_ATEXT_COLOR', '#24b9d7');
+
+        Configuration::updateValue('CLCOMPARE_DETAILS_BACK_COLOR', '#ffffff');
+        Configuration::updateValue('CLCOMPARE_DETAILS_TEXT_COLOR', '#232323');
+        Configuration::updateValue('CLCOMPARE_DETAILS_ROWB_COLOR', '#ffffff');
+        Configuration::updateValue('CLCOMPARE_DETAILS_RONB_COLOR', '#f6f6f6');
+        Configuration::updateValue('CLCOMPARE_DETAILS_TBORDER_COLOR', '#ffffff');
 
         Configuration::updateValue('CLCOMPARE_MAX', '6');
         Configuration::updateValue('CLCOMPARE_REWRITE', 'compare');
@@ -170,7 +181,11 @@ class Classy_Compare extends Module
         $this->context->smarty->assign(
             array(   
                 'compare_link' => $compare_link,
-                'compare_products_count' => $compare_products_count 
+                'compare_products_count' => $compare_products_count,
+                'cnav_background' => Configuration::get('CLCOMPARE_NAV_BACK_COLOR'),
+                'cnav_textcolor' => Configuration::get('CLCOMPARE_NAV_TEXT_COLOR'),
+                'cnav_a_background' => Configuration::get('CLCOMPARE_NAV_ABACK_COLOR'),
+                'cnav_a_textcolor' => Configuration::get('CLCOMPARE_NAV_ATEXT_COLOR'),
             )
         );
         $filePath = 'module:classy_compare/views/templates/hook/classy_compare_nav.tpl';
@@ -361,6 +376,11 @@ class Classy_Compare extends Module
                 Configuration::updateValue('CLCOMPARE_BUTTON_ABACK_COLOR', Tools::getValue('CLCOMPARE_BUTTON_ABACK_COLOR'));
                 Configuration::updateValue('CLCOMPARE_BUTTON_ATEXT_COLOR', Tools::getValue('CLCOMPARE_BUTTON_ATEXT_COLOR'));
     
+                Configuration::updateValue('CLCOMPARE_NAV_BACK_COLOR', Tools::getValue('CLCOMPARE_NAV_BACK_COLOR'));
+                Configuration::updateValue('CLCOMPARE_NAV_TEXT_COLOR', Tools::getValue('CLCOMPARE_NAV_TEXT_COLOR'));
+                Configuration::updateValue('CLCOMPARE_NAV_ABACK_COLOR', Tools::getValue('CLCOMPARE_NAV_ABACK_COLOR'));
+                Configuration::updateValue('CLCOMPARE_NAV_ATEXT_COLOR', Tools::getValue('CLCOMPARE_NAV_ATEXT_COLOR'));
+
                 if(Tools::getValue('CLCOMPARE_SINGLE_POSITION') == 'product_actions'){
                     $this->registerHook('displayProductActions');
                 }else{
@@ -383,6 +403,13 @@ class Classy_Compare extends Module
                 Configuration::updateValue('CLCOMPARE_SUPPLIER', Tools::getValue('CLCOMPARE_SUPPLIER'));
                 Configuration::updateValue('CLCOMPARE_FEATURES', Tools::getValue('CLCOMPARE_FEATURES'));
                 Configuration::updateValue('CLCOMPARE_ADDCART', Tools::getValue('CLCOMPARE_ADDCART'));
+
+                Configuration::updateValue('CLCOMPARE_DETAILS_BACK_COLOR', Tools::getValue('CLCOMPARE_DETAILS_BACK_COLOR'));
+                Configuration::updateValue('CLCOMPARE_DETAILS_TEXT_COLOR', Tools::getValue('CLCOMPARE_DETAILS_TEXT_COLOR'));
+                Configuration::updateValue('CLCOMPARE_DETAILS_ROWB_COLOR', Tools::getValue('CLCOMPARE_DETAILS_ROWB_COLOR'));
+                Configuration::updateValue('CLCOMPARE_DETAILS_RONB_COLOR', Tools::getValue('CLCOMPARE_DETAILS_RONB_COLOR'));
+                Configuration::updateValue('CLCOMPARE_DETAILS_TBORDER_COLOR', Tools::getValue('CLCOMPARE_DETAILS_TBORDER_COLOR'));
+
                 $output = $this->displayConfirmation($this->trans('Settings updated.', array(), 'Modules.Classycompare.Admin'));
             }
             $output .= $this->compare_setting_form();
@@ -473,7 +500,27 @@ class Classy_Compare extends Module
                     'id' => 'id_pos',
                     'name' => 'name'
                 )
-                ),
+            ),
+            array(
+                'type' 	=> 'color',
+                'label' => $this->trans('Nav Background Color', [], 'Modules.Classycompare.Admin'),
+                'name'  => 'CLCOMPARE_NAV_BACK_COLOR',
+            ),
+            array(
+                'type'  => 'color',
+                'label' => $this->trans('Nav Text Color', [], 'Modules.Classycompare.Admin'),
+                'name' 	=> 'CLCOMPARE_NAV_TEXT_COLOR',
+            ),
+            array(
+                'type' 	=> 'color',
+                'label' => $this->trans('Nav Background Hover Color', [], 'Modules.Classycompare.Admin'),
+                'name'  => 'CLCOMPARE_NAV_ABACK_COLOR',
+            ),
+            array(
+                'type'  => 'color',
+                'label' => $this->trans('Nav Text Hover Color', [], 'Modules.Classycompare.Admin'),
+                'name' 	=> 'CLCOMPARE_NAV_ATEXT_COLOR',
+            ),
             array(
                 'type' 	=> 'color',
                 'label' => $this->trans('Button Background Color', [], 'Modules.Classycompare.Admin'),
@@ -668,7 +715,32 @@ class Classy_Compare extends Module
                         'label' => $this->trans('No', [], 'Modules.Classycompare.Admin'),
                     ),
                 ),
-            )
+            ),
+            array(
+                'type' 	=> 'color',
+                'label' => $this->trans('Details Background Color', [], 'Modules.Classycompare.Admin'),
+                'name'  => 'CLCOMPARE_DETAILS_BACK_COLOR',
+            ),
+            array(
+                'type'  => 'color',
+                'label' => $this->trans('Details Text Color', [], 'Modules.Classycompare.Admin'),
+                'name' 	=> 'CLCOMPARE_DETAILS_TEXT_COLOR',
+            ),
+            array(
+                'type' 	=> 'color',
+                'label' => $this->trans('Row With Background Color', [], 'Modules.Classycompare.Admin'),
+                'name'  => 'CLCOMPARE_DETAILS_ROWB_COLOR',
+            ),
+            array(
+                'type'  => 'color',
+                'label' => $this->trans('Row With No Background Color', [], 'Modules.Classycompare.Admin'),
+                'name' 	=> 'CLCOMPARE_DETAILS_RONB_COLOR',
+            ),
+            array(
+                'type'  => 'color',
+                'label' => $this->trans('Table Border Color', [], 'Modules.Classycompare.Admin'),
+                'name' 	=> 'CLCOMPARE_DETAILS_TBORDER_COLOR',
+            ),
         );
         
         $args['field'] = $field;

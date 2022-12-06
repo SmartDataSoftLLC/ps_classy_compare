@@ -8,3 +8,20 @@
         </div>
     </div>
 </div>
+<style>
+    .classy-compare-top-bt{
+        background-color: {$cnav_background} !important;
+    }
+
+    .classy-compare-top-bt .header .compare-products-count, .classy-compare-top-bt .header i{
+        color: {$cnav_textcolor} !important;
+    }
+
+    .classy-compare-top-bt:hover {
+        background-color: {$cnav_a_background} !important;
+    }
+
+    .classy-compare-top-bt:hover .header .compare-products-count, .classy-compare-top-bt:hover .header i{
+        color: {$cnav_a_textcolor} !important;
+    }
+</style>
