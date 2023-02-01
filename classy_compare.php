@@ -44,7 +44,7 @@ class Classy_Compare extends Module
     {
         $this->name = 'classy_compare';
         $this->author = 'ClassyDevs';
-        $this->version = '1.0.1';
+        $this->version = '1.0.2';
 
         $this->bootstrap = true;
         parent::__construct();
@@ -112,7 +112,8 @@ class Classy_Compare extends Module
             'classy_product_compare' => $this->context->link->getModuleLink($this->name, 'addcompare', [], true),
             'compare_url' => $compare_url,
             'link_text' => $link_text,
-            'added_text' => $added_text
+            'added_text' => $added_text,
+            'not_found_text' => $this->trans('No Products Found to Compare', [], 'Modules.Classycompare.Admin'),
         ]);
 
         $this->context->controller->registerJavascript('modules-classycompare', 'modules/' . $this->name . '/views/js/js_classycompare.js');

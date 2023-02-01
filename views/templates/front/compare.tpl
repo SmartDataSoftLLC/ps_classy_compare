@@ -1,8 +1,3 @@
-{extends file='page.tpl'}
-{block name='page_header_container'}
-{/block}
-
-{block name='page_content_container'}
 {*
 * 2007-2017 PrestaShop
 *
@@ -117,31 +112,30 @@
             {/foreach}
           </tbody>
         </table>
+        <style>
+          .compare-details-section table, .compare-details-section table tr td, .compare-details-section table tr th{
+            border: 1px solid {$tborder_color};
+          }
+          .compare-details-section{
+            background: {$details_background} !important;
+            overflow-x: scroll;
+            border: 6px solid {$details_background} !important;
+            color: {$details_textcolor};
+          }
+          .compare-details-section table .compare-item-description p, .compare-details-section table .compare-table-top label{
+            color: {$details_textcolor};
+          }
+          .with-background{
+            background: {$with_back};
+          }
+          .no-background {
+            background: {$no_back};
+          }
+        </style>
       {else}
         <div class="page-title">
           <h2>{l s='No Products Added to Compare' d='Modules.Classycompare.Shop'}</h3>
         </div>
       {/if}
-      <style>
-        .compare-details-section table, .compare-details-section table tr td, .compare-details-section table tr th{
-          border: 1px solid {$tborder_color};
-        }
-        .compare-details-section{
-          background: {$details_background} !important;
-          overflow-x: scroll;
-          border: 6px solid {$details_background} !important;
-          color: {$details_textcolor};
-        }
-        .compare-details-section table .compare-item-description p, .compare-details-section table .compare-table-top label{
-          color: {$details_textcolor};
-        }
-        .with-background{
-          background: {$with_back} !important;
-        }
-        .no-background {
-          background: {$no_back} !important;
-        }
-      </style>
     {/block}
-  {/block}
 </div>
